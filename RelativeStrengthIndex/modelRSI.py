@@ -7,7 +7,7 @@ import matplotlib.ticker as ticker
 
 from classRSI import Stocks
 
-td_1y = datetime.timedelta(weeks=52/4)
+td_1y = datetime.timedelta(weeks=52/2)
 today = datetime.datetime.now()
 start_day = today - td_1y
 

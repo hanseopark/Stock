@@ -12,7 +12,7 @@ from finance_class import Stocks
 #pd.options.display.float_format = '{:.4f}'
 #pd.set_option('display.max_columns', None)
 
-td_1y = datetime.timedelta(weeks=52/4)
+td_1y = datetime.timedelta(weeks=52/2)
 #start_day = datetime.datetime(2019,1,1)
 #end_day = datetime.datetime(2021,5,1)
 today = datetime.datetime.now()
