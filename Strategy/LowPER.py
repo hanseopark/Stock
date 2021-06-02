@@ -15,8 +15,8 @@ df_nasdaq_symbol = pdr.nasdaq_trader.get_nasdaq_symbols()
 
 
 # For S&P500
-pers_10 = pd.DataFrame({'PER': ['']}, index=['Symbol'])
-pers_20 = pd.DataFrame({'PER': ['']}, index=['Symbol'])
+pers_10 = pd.DataFrame({'PER': ['']}, index=['AAPL'])
+pers_20 = pd.DataFrame({'PER': ['']}, index=['AAPL'])
 
 url_sp500 = '../data/FS.json'
 df_sp500 = pd.read_json(url_sp500)
@@ -28,7 +28,7 @@ for s in df_sp500.index.values:
         per = float(per)
         if (per < 20.0):
             pers_20.loc[s,'PER'] = per
-            if (int(df_sp500.loc[s, 'PER']) <10):
+            if (per < 10.0):
                 pers_10.loc[s,'PER'] = per
 
 
@@ -36,9 +36,10 @@ for s in df_sp500.index.values:
         error_symbols.append(s)
 
 
-#print(pers_10)
-#print(pers_20)
+print(pers_10)
+print(pers_20)
 
-url = '../data/tableLowPER.json'
-pers_10.to_json(url)
-pers_20.to_json(url)
+url_10 = '../data/tableLowPER_10.json'
+url_20 = '../data/tableLowPER_20.json'
+pers_10.to_json(url_10)
+pers_20.to_json(url_20)
