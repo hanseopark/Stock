@@ -42,9 +42,8 @@ for s in df_sp500["Symbol"]:
         df.loc[s, 'PBR'] = pbr
         df.loc[s, 'Sector'] = sector
         df.loc[s, 'Beta'] = beta
-        print(df)
         print(s)
-        #df.to_json(url_sp500)
+        df.to_json(url_sp500)
     except:
         print('error:', s)
         error_symbols.append(s)
