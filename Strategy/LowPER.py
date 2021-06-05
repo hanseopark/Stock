@@ -8,7 +8,7 @@ import matplotlib as plt
 import seaborn as sns
 import json
 
-from classStrategy import FinancialStatements
+from classStrategy import BasicStrategy
 
 # For NASDAQ
 df_nasdaq_symbol = pdr.nasdaq_trader.get_nasdaq_symbols()
