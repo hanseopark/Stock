@@ -22,9 +22,9 @@ df_sp500 = pd.read_csv(url)
 #print(yfs.get_quote_table('aapl'))
 
 
-df = pd.DataFrame({'PER':[''], 'PBR':[''], 'Sector':['']}, index=['Symbol'])
-pers_10 = pd.DataFrame({'PER': ['']}, index=['Symbol'])
-pers_20 = pd.DataFrame({'PER': ['']}, index=['Symbol'])
+df = pd.DataFrame({'PER':[''], 'PBR':[''], 'Sector':[''], 'Beta':['']})
+pers_10 = pd.DataFrame({'PER': ['']})
+pers_20 = pd.DataFrame({'PER': ['']})
 url_sp500 = '../data/FS.json'
 #df = pd.read_json(url_sp500)
 #print(df)
@@ -37,12 +37,16 @@ for s in df_sp500["Symbol"]:
         per = FS.get_PER()
         pbr = FS.get_PBR()
         sector = FS.get_SECTOR()
+        beta = FS.get_Beta()
         df.loc[s, 'PER'] = per
         df.loc[s, 'PBR'] = pbr
         df.loc[s, 'Sector'] = sector
+        df.loc[s, 'Beta'] = beta
+        print(df)
         print(s)
-        df.to_json(url_sp500)
+        #df.to_json(url_sp500)
     except:
+        print('error:', s)
         error_symbols.append(s)
 
 # Save
