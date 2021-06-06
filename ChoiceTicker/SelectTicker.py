@@ -30,12 +30,16 @@ url_sp500 = '../data/FS.json'
 #print(df)
 
 FS = FinancialStatements("AAPL")
-temp = FS.get_valuation()
-print(temp)
-temp2 = FS.get_ROA()
-print(temp2)
-temp3 = FS.get_flow()
-print(temp3)
+
+print('*'*50)
+FS.print_Basic()
+print('*'*50)
+FS.print_Add()
+print('*'*50)
+FS.print_Sheet()
+print('*'*50)
+FS.print_CashFlow()
+print('*'*50)
 
 error_symbols = []
 #for s in df_sp500["Symbol"]:
