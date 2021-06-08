@@ -12,6 +12,7 @@ class FinancialStatements:
         self.ticker = ticker
         self.yfticker = yf.Ticker(ticker)
         self.yfsquote = yfs.get_quote_table(ticker)
+        self.yfsticker = yfs.get_quote_table(ticker)
         self.yfsBasicStats = yfs.get_stats_valuation(ticker)
         self.yfsAdditionalStats = yfs.get_stats(ticker)
         self.yfsSheet = yfs.get_balance_sheet(ticker)
@@ -41,6 +42,17 @@ class FinancialStatements:
     def get_CashFlow(self):
         return self.yfsCashFlow
 
+=======
+    def print_Basic(self):
+        print(self.yfsBasicStats)
+
+    def print_Add(self):
+        print(self.yfsAdditionalStats)
+
+    def print_Sheet(self):
+        print(self.yfsSheet)
+
+>>>>>>> 724f86babf2b26e4afb681bc5bac795a9c3a37d1
     def print_CashFlow(self):
         print(self.yfsCashFlow)
 
