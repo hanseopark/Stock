@@ -67,15 +67,6 @@ for ticker in tqdm(dow_list):
 
 print(selected_ticker)
 
-url = '../data_ForTrading/{0}_TickerList'.format(today)
-with open(url, 'w') as f:
-    write = csv.writer(f)
-    write.writerows(selected_ticker)
-
-
-
-
-
-
-
-
+url = '../data_ForTrading/{0}_TickerList.json'.format(today.date())
+df = pd.DataFrame(selected_ticker)
+df.to_json(url)
