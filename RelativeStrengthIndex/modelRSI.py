@@ -23,7 +23,7 @@ for ticker in tqdm(stock_list):
     value_RSI_signal = float(df_recent['RSI signal'])
     if value_RSI < 40:
         if value_RSI < value_RSI_signal:
-            selected_ticker.append()
+            selected_ticker.append(ticker)
 
 print(selected_ticker)
 

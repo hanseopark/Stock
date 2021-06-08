@@ -63,8 +63,6 @@ for ticker in tqdm(dow_list):
             if value_recent < upper_recent:
                 selected_ticker.append(ticker)
 
-print(selected_ticker)
-
 url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList.json'.format(today.date())
 df = pd.DataFrame(selected_ticker)
 df.columns = ['Ticker']
