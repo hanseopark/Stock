@@ -4,8 +4,6 @@ import pandas_datareader as pdr
 import yfinance as yf
 import yahoo_fin.stock_info as yfs
 
-import matplotlib as plt
-import seaborn as sns
 import csv
 import json
 import datetime
@@ -67,6 +65,7 @@ for ticker in tqdm(dow_list):
 
 print(selected_ticker)
 
-url = '../data_ForTrading/{0}_TickerList.json'.format(today.date())
+url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList.json'.format(today.date())
 df = pd.DataFrame(selected_ticker)
+df.columns = ['Ticker']
 df.to_json(url)
