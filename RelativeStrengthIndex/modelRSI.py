@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import pandas_datareader as pdr
 import datetime
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+from tqdm import tqdm
 
 from classRSI import Stocks
 
@@ -11,33 +10,23 @@ td_1y = datetime.timedelta(weeks=52/2)
 today = datetime.datetime.now()
 start_day = today - td_1y
 
-symbol = input('Write ticker name like aapl: ')
+url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList.json'.format(today.date())
+stock_list = pd.read_json(url)['Ticker'].values.tolist()
+print(stock_list)
 
-stock = Stocks(symbol, start_day, today)
+selected_ticker = []
+for ticker in tqdm(stock_list):
+    stock = Stocks(ticker, start_day, today)
+    df = stock.calcRSI()
+    df_recent = df.iloc[-1:]
+    value_RSI = float(df_recent['RSI'])
+    value_RSI_signal = float(df_recent['RSI signal'])
+    if value_RSI < 40:
+        if value_RSI < value_RSI_signal:
+            selected_ticker.append()
 
-df= stock.calcRSI()
+print(selected_ticker)
 
-#print(df)
-
-index = df.index.astype('str')
-
-fig = plt.figure(figsize=(10,10))
-
-ax_main = plt.subplot(1,1,1)
-
-def x_date(x,pos):
-    try:
-        return index[int(x-0.5)][:7]
-    except IndexError:
-        return ''
-
-# For figure
-ax_main.xaxis.set_major_locator(ticker.MaxNLocator(10))
-ax_main.xaxis.set_major_formatter(ticker.FuncFormatter(x_date))
-
-ax_main.plot(index, df['RSI'], label='RSI')
-
-plt.grid()
-plt.show()
-
-
+url = '/Users/hanseopark/Work/stock/data_ForTrading/output.json'
+df = pd.DataFrame(selected_ticker, columns=['Ticker'])
+df.to_json(url)
