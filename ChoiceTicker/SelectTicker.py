@@ -29,24 +29,37 @@ url_sp500 = '../data/FS.json'
 #df = pd.read_json(url_sp500)
 #print(df)
 
+FS = FinancialStatements("AAPL")
+
+print('*'*50)
+FS.print_Basic()
+print('*'*50)
+FS.print_Add()
+print('*'*50)
+FS.print_Sheet()
+print('*'*50)
+FS.print_CashFlow()
+print('*'*50)
+
 error_symbols = []
-for s in df_sp500["Symbol"]:
-    #if(s!= df.index.values):
-    try:
-        FS = FinancialStatements(s)
-        per = FS.get_PER()
-        pbr = FS.get_PBR()
-        sector = FS.get_SECTOR()
-        beta = FS.get_Beta()
-        df.loc[s, 'PER'] = per
-        df.loc[s, 'PBR'] = pbr
-        df.loc[s, 'Sector'] = sector
-        df.loc[s, 'Beta'] = beta
-        print(s)
-        df.to_json(url_sp500)
-    except:
-        print('error:', s)
-        error_symbols.append(s)
+#for s in df_sp500["Symbol"]:
+#    #if(s!= df.index.values):
+#    try:
+#        FS = FinancialStatements(s)
+#        per = FS.get_PER()
+#        pbr = FS.get_PBR()
+#        sector = FS.get_SECTOR()
+#        beta = FS.get_Beta()
+#        df.loc[s, 'PER'] = per
+#        df.loc[s, 'PBR'] = pbr
+#        df.loc[s, 'Sector'] = sector
+#        df.loc[s, 'Beta'] = beta
+#        print(s)
+#        prinnt(df)
+#        #df.to_json(url_sp500)
+#    except:
+#        print('error:', s)
+#        error_symbols.append(s)
 
 # Save
 
