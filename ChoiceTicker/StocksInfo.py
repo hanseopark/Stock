@@ -86,6 +86,7 @@ for ticker in tqdm(dow_list):
     except:
         error_symbols.append(ticker)
 
+
 recent_sheets = {ticker : sheet.iloc[:,:1] for ticker, sheet in dow_balsheets.items()}
 for ticker in recent_sheets.keys():
     recent_sheets[ticker].columns = ["Recent"]
