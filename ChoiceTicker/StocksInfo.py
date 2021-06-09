@@ -33,7 +33,7 @@ print('*'*100)
 # Get list of Dow tickers
 dow_list = yfs.tickers_dow()
 filename = ''
-s= input("Choice of stock's list (dow, sp500, nasdaq, other): ")
+s= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
 if s == 'dow':
     dow_list = yfs.tickers_dow()
     filename = 'dow'
@@ -46,6 +46,12 @@ elif s == 'nasdaq':
 elif s == 'other':
     filename = 'other'
     dow_list = yfs.tickers_other()
+elif s == 'selected':
+    url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
+    temp_pd = pd.read_json(url)
+    temp_pd = temp_pd['Ticker']
+    dow_list = temp_pd.values.tolist()
+
 print(dow_list)
 
 

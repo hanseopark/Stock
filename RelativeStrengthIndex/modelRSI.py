@@ -27,6 +27,6 @@ for ticker in tqdm(stock_list):
 
 print(selected_ticker)
 
-url = '/Users/hanseopark/Work/stock/data_ForTrading/output.json'
+url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
 df = pd.DataFrame(selected_ticker, columns=['Ticker'])
 df.to_json(url)

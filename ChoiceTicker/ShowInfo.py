@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from classStrategy import BasicStrategy
 
-url = '/Users/hanseopark/Work/stock/data_ForTrading/output.json'
+url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
 temp_pd = pd.read_json(url)
 temp_pd = temp_pd['Ticker']
 stock_list = temp_pd.values.tolist()
