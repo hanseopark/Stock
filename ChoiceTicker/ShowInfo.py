@@ -7,8 +7,6 @@ import yahoo_fin.stock_info as yfs
 import json
 from tqdm import tqdm
 
-from classStrategy import BasicStrategy
-
 url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
 temp_pd = pd.read_json(url)
 temp_pd = temp_pd['Ticker']

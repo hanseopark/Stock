@@ -47,6 +47,7 @@ elif s == 'other':
     filename = 'other'
     dow_list = yfs.tickers_other()
 elif s == 'selected':
+    filename = 'selected'
     url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
     temp_pd = pd.read_json(url)
     temp_pd = temp_pd['Ticker']
@@ -139,7 +140,7 @@ print(combined_flow)
 list_stats = ['stats', 'addstats', 'balsheets', 'income', 'flow']
 #url = '../data/FS_{0}_{1}'.format(filename,stats)
 for s in list_stats:
-    url = '../data/FS_{0}_{1}.json'.format(filename, s)
+    url = '/Users/hanseopark/Work/stock/data/FS_{0}_{1}.json'.format(filename, s)
     if s == 'stats':
         df = combined_stats
     elif s == 'addstats':
