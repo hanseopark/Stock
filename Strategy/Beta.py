@@ -7,7 +7,7 @@ from mplfinance.original_flavor import candlestick2_ohlc
 
 import datetime
 
-from classStrategy import BasicStrategy
+from class_Strategy import BasicStatement
 
 td_1y = datetime.timedelta(weeks=52/2)
 today = datetime.datetime.now()
@@ -17,7 +17,7 @@ start_day = today - td_1y
 print('It is calculated by SPY etf for calulation of Beta')
 symbol = input('Write ticker name like AAPL: ')
 
-stock = BasicStrategy(symbol, start_day, today)
+stock = BasicStatement(symbol, start_day, today)
 
 print(stock.Calculate_Beta())
 

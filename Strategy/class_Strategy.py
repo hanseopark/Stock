@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 import pandas_datareader as pdr
+import yfinance as yf
+
+from sklearn.linear_model import LinearRegression
 
 class ShortTermStrategy:
 
@@ -14,7 +17,6 @@ class ShortTermStrategy:
         return df_price
 
     def DayTrading(self, df, df_init, df_end, calendar, capital, day):
-
         portval = 0
         for date in calendar[::day]:
             prev_date = df_init.index[df_init.index<date][-1]
@@ -183,10 +185,34 @@ class ShortTermStrategy:
 
             return (self.DayTrading(df_origin, df_init, df_end, calendar, capital, day)-capital)/capital*100
 
+class LongTermStrategy:
+    def __init__(self):
+        pass
 
+class ToyStrategy:
+    def __init__(self):
+        pass
 
+class BasicStatement:
+    def __init__(self, ticker, start_day, end_day):
+        self.ticker = ticker
+        self.start_day = start_day
+        self.end_day = end_day
+        self.yfticker = yf.Ticker(ticker)
 
+    def Calculate_Beta(self):
+        symbol_list = [self.ticker,'SPY']
+        df = yf.download(symbol_list, self.start_day)['Adj Close']
+        price_change = df.pct_change()
+        df_ForBeta = price_change.drop(price_change.index[0])
+        x = np.array(df_ForBeta['SPY']).reshape([-1,1])
+        y = np.array(df_ForBeta[self.ticker])
+        model = LinearRegression().fit(x, y)
 
+        return model.coef_
+
+class AdvancedStratedy:
+    pass
 
 
 
