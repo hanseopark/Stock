@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pandas_datareader as pdr
 
-class Strategy:
+class ShortTermStrategy:
 
     def __init__(self, symbol, start_day, end_day):
         self.symbol = symbol
@@ -13,14 +13,10 @@ class Strategy:
         df_price = pdr.DataReader(self.symbol, 'yahoo',self. start_day, self.end_day)
         return df_price
 
-    def DayTrading(self, dataframe, dataframe_init, dataframe_end, days, capital):
-        df = dataframe
-        df_init = dataframe_init
-        df_end = dataframe_end
-        calendar = days
+    def DayTrading(self, df, df_init, df_end, calendar, capital, day):
 
         portval = 0
-        for date in calendar:
+        for date in calendar[::day]:
             prev_date = df_init.index[df_init.index<date][-1]
             df_init.loc[date, :] = df_end.loc[prev_date, :]
             port_value = df_init.loc[date, 'Adj Close'] * df.loc[date, 'Adj Close'] + df_init.loc[date, 'cash']
@@ -29,10 +25,11 @@ class Strategy:
             value  = float(df.loc[date, 'Close'])
 
             dist = (value-prev_value)/value
-            if dist >0.02:
+            if dist >0.025:
                 df_end.loc[date, 'Adj Close'] = 0
                 df_end.loc[date, 'cash'] = port_value
-            elif dist < -0.015:
+            #elif dist < -0.015:
+            elif dist < -0.05:
                 df_end.loc[date, 'Adj Close'] = 0
                 df_end.loc[date, 'cash'] = port_value
             else:
@@ -73,12 +70,7 @@ class Strategy:
 
         return df_price
 
-    def BolingerBand(self, dataframe, dataframe_init, dataframe_end, days, capital):
-        df = dataframe
-        df_init = dataframe_init
-        df_end = dataframe_end
-        calendar = days
-
+    def BolingerBand(self, df, df_init, df_end, calendar, capital):
         std_mean = float(df.loc[:, 'Std'].mean())
         portval = 0
         for date in calendar:
@@ -125,12 +117,7 @@ class Strategy:
         df.insert(len(df.columns), 'RSI signal', df['RSI'].rolling(window=9, min_periods=1).mean())
         return df
 
-    def RSI(self, dataframe, dataframe_init, dataframe_end, days, capital):
-        df = dataframe
-        df_init = dataframe_init
-        df_end = dataframe_end
-        calendar = days
-
+    def RSI(self, df, df_init, df_end, calendar, capital):
         portval = 0
         for date in calendar:
             prev_date = df_init.index[df_init.index<date][-1]
@@ -150,18 +137,15 @@ class Strategy:
                 df_end.loc[date, 'Adj Close'] = df_end.loc[prev_date, 'Adj Close']
                 df_end.loc[date, 'cash'] = df_end.loc[prev_date, 'cash']
 
-
-
             #print(value, df.loc[date, 'Adj Close'],df_end.loc[date, 'Adj Close'], df_init.loc[date, 'cash'],port_value)
             portval = port_value
 
         return portval
 
-    def Backtest(self, capital= 10000, name_strategy=''):
+    def Backtest(self, capital= 10000, name_strategy='', day = 1):
         pass
         if name_strategy == 'BolingerBand':
             df_origin = self.with_moving_ave()
-            real_val = (df_origin.loc[df_origin.index[-1],'Adj Close'] - df_origin.loc[df_origin.index[0], 'Adj Close'])/df_origin.loc[df_origin.index[-1], 'Adj Close']*100
 
             df_init = (df_origin*0).assign(cash = 0)
             df_end = (df_origin*0).assign(cash = 0)
@@ -171,13 +155,11 @@ class Strategy:
 
             calendar = pd.Series(df_origin.index).iloc[1:]
 
-            print(real_val)
             return (self.BolingerBand(df_origin, df_init, df_end, calendar, capital)-capital)/capital*100
 
         if name_strategy == 'RSI':
             df_origin = self.calcRSI()
 
-            real_val = (df_origin.loc[df_origin.index[-1],'Adj Close'] - df_origin.loc[df_origin.index[0], 'Adj Close'])/df_origin.loc[df_origin.index[-1], 'Adj Close']*100
             df_init = (df_origin*0).assign(cash = 0)
             df_end = (df_origin*0).assign(cash = 0)
 
@@ -186,13 +168,11 @@ class Strategy:
 
             calendar = pd.Series(df_origin.index).iloc[1:]
 
-            print(real_val)
             return (self.RSI(df_origin, df_init, df_end, calendar, capital)-capital)/capital*100
 
         if name_strategy == 'DayTrading':
             df_origin = self.get_price_data()
 
-            real_val = (df_origin.loc[df_origin.index[-1],'Adj Close'] - df_origin.loc[df_origin.index[0], 'Adj Close'])/df_origin.loc[df_origin.index[-1], 'Adj Close']*100
             df_init = (df_origin*0).assign(cash = 0)
             df_end = (df_origin*0).assign(cash = 0)
 
@@ -201,8 +181,7 @@ class Strategy:
 
             calendar = pd.Series(df_origin.index).iloc[1:]
 
-            print(real_val)
-            return (self.DayTrading(df_origin, df_init, df_end, calendar, capital)-capital)/capital*100
+            return (self.DayTrading(df_origin, df_init, df_end, calendar, capital, day)-capital)/capital*100
 
 
 
