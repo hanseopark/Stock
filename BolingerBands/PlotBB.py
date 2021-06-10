@@ -7,7 +7,7 @@ from mplfinance.original_flavor import candlestick2_ohlc
 
 import datetime
 
-from finance_class import Stocks
+from classBB import Stocks
 
 #pd.options.display.float_format = '{:.4f}'
 #pd.set_option('display.max_columns', None)

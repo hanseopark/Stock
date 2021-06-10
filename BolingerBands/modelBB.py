@@ -10,7 +10,7 @@ import datetime
 from tqdm import tqdm
 
 #from classStrategy import BasicStrategy
-from finance_class import Stocks
+from classBB import Stocks
 
 td_1y = datetime.timedelta(weeks=52/2)
 #start_day = datetime.datetime(2019,1,1)
