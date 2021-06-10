@@ -14,8 +14,9 @@ df_bol = strategy.with_moving_ave()
 df_RSI = strategy.calcRSI()
 
 c = 10000
-NameStrategy = 'BolingerBand'
+#NameStrategy = 'BolingerBand'
 #NameStrategy = 'RSI'
+NameStrategy = 'DayTrading'
 res = strategy.Backtest(capital = c, name_strategy = NameStrategy)
 
 print('eaning value: ' ,res)

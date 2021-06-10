@@ -9,6 +9,42 @@ class Strategy:
         self.start_day = start_day
         self.end_day = end_day
 
+    def get_price_data(self):
+        df_price = pdr.DataReader(self.symbol, 'yahoo',self. start_day, self.end_day)
+        return df_price
+
+    def DayTrading(self, dataframe, dataframe_init, dataframe_end, days, capital):
+        df = dataframe
+        df_init = dataframe_init
+        df_end = dataframe_end
+        calendar = days
+
+        portval = 0
+        for date in calendar:
+            prev_date = df_init.index[df_init.index<date][-1]
+            df_init.loc[date, :] = df_end.loc[prev_date, :]
+            port_value = df_init.loc[date, 'Adj Close'] * df.loc[date, 'Adj Close'] + df_init.loc[date, 'cash']
+
+            prev_value = float(df.loc[prev_date, 'Close'])
+            value  = float(df.loc[date, 'Close'])
+
+            dist = (value-prev_value)/value
+            if dist >0.02:
+                df_end.loc[date, 'Adj Close'] = 0
+                df_end.loc[date, 'cash'] = port_value
+            elif dist < -0.015:
+                df_end.loc[date, 'Adj Close'] = 0
+                df_end.loc[date, 'cash'] = port_value
+            else:
+                df_end.loc[date, 'Adj Close'] = port_value/df.loc[date, 'Adj Close']
+                df_end.loc[date,'cash'] =0
+
+            #print(prev_value, value, dist)
+            #print(df.loc[date, 'Adj Close'],df_end.loc[date, 'Adj Close'], port_value)
+            portval = port_value
+
+        return portval
+
     def with_moving_ave(self):
         df_price = pdr.DataReader(self.symbol, 'yahoo',self. start_day, self.end_day)
         ma5= df_price['Adj Close'].rolling(window = 5, min_periods=1).mean()
@@ -53,7 +89,7 @@ class Strategy:
             std = float(df.loc[date, 'Std'])
             #std_mean = float(df.loc[date, 'MeanOfStd'])
             value = float(df.loc[date, 'Adj Close'])
-            value_ago = float(df.loc[df.index[-4], 'Adj Close'])
+            value_ago = float(df.loc[df_init.index[-4], 'Adj Close'])
             upper = float(df.loc[date, 'bol_upper'])
             if std < std_mean:
                 if value > value_ago:
@@ -152,6 +188,21 @@ class Strategy:
 
             print(real_val)
             return (self.RSI(df_origin, df_init, df_end, calendar, capital)-capital)/capital*100
+
+        if name_strategy == 'DayTrading':
+            df_origin = self.get_price_data()
+
+            real_val = (df_origin.loc[df_origin.index[-1],'Adj Close'] - df_origin.loc[df_origin.index[0], 'Adj Close'])/df_origin.loc[df_origin.index[-1], 'Adj Close']*100
+            df_init = (df_origin*0).assign(cash = 0)
+            df_end = (df_origin*0).assign(cash = 0)
+
+            df_init.iloc[0, df_init.columns.get_loc('cash')] = capital
+            df_end.iloc[0, df_end.columns.get_loc('cash')] = capital
+
+            calendar = pd.Series(df_origin.index).iloc[1:]
+
+            print(real_val)
+            return (self.DayTrading(df_origin, df_init, df_end, calendar, capital)-capital)/capital*100
 
 
 
