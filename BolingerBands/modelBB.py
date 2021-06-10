@@ -48,7 +48,7 @@ for ticker in tqdm(dow_list):
     df = stock.with_moving_ave()
     index = df.index.astype('str')
     mean = df['Std'].mean()
-    df_day_ago = df.iloc[-3]
+    df_day_ago = df.iloc[-4]
     df_recent = df.iloc[-1:]
     #print(df_day_ago)
     #print(df_recent)

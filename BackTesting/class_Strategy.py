@@ -43,6 +43,7 @@ class Strategy:
         df_end = dataframe_end
         calendar = days
 
+        std_mean = float(df.loc[:, 'Std'].mean())
         portval = 0
         for date in calendar:
             prev_date = df_init.index[df_init.index<date][-1]
@@ -50,9 +51,9 @@ class Strategy:
             port_value = df_init.loc[date, 'Adj Close'] * df.loc[date, 'Adj Close'] + df_init.loc[date, 'cash']
 
             std = float(df.loc[date, 'Std'])
-            std_mean = float(df.loc[date, 'MeanOfStd'])
+            #std_mean = float(df.loc[date, 'MeanOfStd'])
             value = float(df.loc[date, 'Adj Close'])
-            value_ago = float(df.loc[df.index[-3], 'Adj Close'])
+            value_ago = float(df.loc[df.index[-4], 'Adj Close'])
             upper = float(df.loc[date, 'bol_upper'])
             if std < std_mean:
                 if value > value_ago:
@@ -115,7 +116,7 @@ class Strategy:
 
 
 
-            print(value, df.loc[date, 'Adj Close'],df_end.loc[date, 'Adj Close'], df_init.loc[date, 'cash'],port_value)
+            #print(value, df.loc[date, 'Adj Close'],df_end.loc[date, 'Adj Close'], df_init.loc[date, 'cash'],port_value)
             portval = port_value
 
         return portval
@@ -124,6 +125,7 @@ class Strategy:
         pass
         if name_strategy == 'BolingerBand':
             df_origin = self.with_moving_ave()
+            real_val = (df_origin.loc[df_origin.index[-1],'Adj Close'] - df_origin.loc[df_origin.index[0], 'Adj Close'])/df_origin.loc[df_origin.index[-1], 'Adj Close']*100
 
             df_init = (df_origin*0).assign(cash = 0)
             df_end = (df_origin*0).assign(cash = 0)
@@ -133,11 +135,13 @@ class Strategy:
 
             calendar = pd.Series(df_origin.index).iloc[1:]
 
-            return self.BolingerBand(df_origin, df_init, df_end, calendar, capital)
+            print(real_val)
+            return (self.BolingerBand(df_origin, df_init, df_end, calendar, capital)-capital)/capital*100
 
         if name_strategy == 'RSI':
             df_origin = self.calcRSI()
 
+            real_val = (df_origin.loc[df_origin.index[-1],'Adj Close'] - df_origin.loc[df_origin.index[0], 'Adj Close'])/df_origin.loc[df_origin.index[-1], 'Adj Close']*100
             df_init = (df_origin*0).assign(cash = 0)
             df_end = (df_origin*0).assign(cash = 0)
 
@@ -146,7 +150,8 @@ class Strategy:
 
             calendar = pd.Series(df_origin.index).iloc[1:]
 
-            return self.RSI(df_origin, df_init, df_end, calendar, capital)
+            print(real_val)
+            return (self.RSI(df_origin, df_init, df_end, calendar, capital)-capital)/capital*100
 
 
 
