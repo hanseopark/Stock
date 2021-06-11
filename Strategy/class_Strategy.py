@@ -3,6 +3,8 @@ import pandas as pd
 import pandas_datareader as pdr
 import yfinance as yf
 
+import json
+from tqdm import tqdm
 from sklearn.linear_model import LinearRegression
 
 class ShortTermStrategy:
@@ -186,8 +188,51 @@ class ShortTermStrategy:
             return (self.DayTrading(df_origin, df_init, df_end, calendar, capital, day)-capital)/capital*100
 
 class LongTermStrategy:
-    def __init__(self):
-        pass
+    def __init__(self, url, etf_list, statement):
+        url = url+'FS_{0}_{1}.json'.format(etf_list, statement)
+        self.url = url
+
+    def get_PER(self):
+        df = pd.read_json(self.url)
+        df = df[df.Attribute.str.contains("Trailing P/E")]
+        df = df.reset_index()
+        df_per = df.loc[:,['Ticker','Recent']]
+        df_per = df_per.rename(columns = {'Recent': 'PER'})
+        df_per.set_index('Ticker', inplace = True)
+        df_per['PER'] = df_per['PER'].astype(float)
+
+        return df_per
+
+    def LowPER(self, threshold= 10):
+        df = self.get_PER()
+        df_per = pd.DataFrame({'PER': []})
+        error_symbols = []
+        for ticker in tqdm(df.index):
+            per = df.loc[ticker, 'PER']
+            try:
+                if per < threshold:
+                    df_per.loc[ticker, 'PER'] = per
+            except:
+                error_symbols.append(ticker)
+
+        return df_per
+
+    def get_PBR(self):
+        df = pd.read_json(self.url)
+        df = df[df.Attribute.str.contains("Price/Book")]
+        df = df.reset_index()
+        df_pbr = df.loc[:,['Ticker','Recent']]
+        df_pbr = df_pbr.rename(columns = {'Recent': 'PBR'})
+        df_pbr.set_index('Ticker', inplace = True)
+        df_pbr['PBR'] = df_pbr['PBR'].astype(float)
+
+        return df_pbr
+
+    def LowPBR(self, threshold=10):
+        df = self.get_PBR()
+        df = df.sort_values(by='PBR')
+
+        return df
 
 class ToyStrategy:
     def __init__(self):

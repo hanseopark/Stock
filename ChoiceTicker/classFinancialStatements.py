@@ -42,7 +42,6 @@ class FinancialStatements:
     def get_CashFlow(self):
         return self.yfsCashFlow
 
-=======
     def print_Basic(self):
         print(self.yfsBasicStats)
 
@@ -52,7 +51,6 @@ class FinancialStatements:
     def print_Sheet(self):
         print(self.yfsSheet)
 
->>>>>>> 724f86babf2b26e4afb681bc5bac795a9c3a37d1
     def print_CashFlow(self):
         print(self.yfsCashFlow)
 
