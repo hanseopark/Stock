@@ -5,6 +5,7 @@ import yfinance as yf
 
 import json
 from tqdm import tqdm
+from pytrends.request import TrendReq
 from sklearn.linear_model import LinearRegression
 
 class ShortTermStrategy:
@@ -47,7 +48,7 @@ class ShortTermStrategy:
         return portval
 
     def with_moving_ave(self):
-        df_price = pdr.DataReader(self.symbol, 'yahoo',self. start_day, self.end_day)
+        df_price = self.get_price_data()
         ma5= df_price['Adj Close'].rolling(window = 5, min_periods=1).mean()
         ma20= df_price['Adj Close'].rolling(window = 20, min_periods=1).mean()
         ma60= df_price['Adj Close'].rolling(window = 60, min_periods=1).mean()
@@ -109,7 +110,7 @@ class ShortTermStrategy:
 
 
     def calcRSI(self, period=14):
-        df = pdr.DataReader(self.symbol, 'yahoo',self.start_day, self.end_day)
+        df = self.get_price_data()
         date_index = df.index.astype('str')
         U = np.where(df.diff(1)['Adj Close'] > 0, df.diff(1)['Adj Close'], 0)
         D = np.where(df.diff(1)['Adj Close'] < 0, df.diff(1)['Adj Close'] * (-1), 0)
@@ -147,7 +148,6 @@ class ShortTermStrategy:
         return portval
 
     def Backtest(self, capital= 10000, name_strategy='', day = 1):
-        pass
         if name_strategy == 'BolingerBand':
             df_origin = self.with_moving_ave()
 
@@ -234,9 +234,37 @@ class LongTermStrategy:
 
         return df
 
-class ToyStrategy:
-    def __init__(self):
-        pass
+class TrendStrategy:
+    def __init__(self, symbol, start_day, end_day, keywords):
+        self.symbol = symbol
+        self.start_day = start_day
+        self.end_day = end_day
+        self.keywords = keywords
+        self.yfticker = yf.Ticker(symbol)
+
+    def get_price_data(self, nomalization = False):
+        df_price = pdr.DataReader(self.symbol, 'yahoo',self.start_day, self.end_day)
+        if nomalization == True:
+            df_price =df_price/df_price.max()
+        return df_price
+
+    def get_trend_data(self):
+        # it is needed for me to download rating each stock as daily comparing stock's price
+        pytrend = TrendReq(hl='en-US', tz=360) # this package is unoffical
+        #pytrends = TrendReq(hl='en-US', tz=360, timeout=(10,25), proxies=['https://34.203.233.13:80',], retries=2, backoff_factor=0.1, requests_args={'verify':False})
+        #pytrends = TrendReq(hl='en-US', tz=360, timeout=(10,25), proxies=['https://34.203.233.13:80',])
+        df = pd.DataFrame()
+        for ticker in tqdm(self.keywords):
+            temp_list = []
+            temp_list.append(ticker)
+            pytrend.build_payload(kw_list=temp_list, timeframe='today 12-m')
+            df_res = pytrend.interest_over_time()
+            df[ticker] = df_res.loc[:, ticker]
+            df[ticker] = df[ticker]/df[ticker].max()
+
+        return df
+        #return pytrend
+
 
 class BasicStatement:
     def __init__(self, ticker, start_day, end_day):
