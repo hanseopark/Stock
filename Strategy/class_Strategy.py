@@ -76,7 +76,7 @@ class ShortTermStrategy:
         return df_price
 
     def BolingerBand(self, df, df_init, df_end, calendar, capital):
-        std_mean = float(df.loc[:, 'Std'].mean())
+        #std_mean = float(df.loc[:, 'Std'].mean())
         portval = 0
         for date in calendar:
             prev_date = df_init.index[df_init.index<date][-1]
@@ -84,12 +84,13 @@ class ShortTermStrategy:
             port_value = df_init.loc[date, 'Adj Close'] * df.loc[date, 'Adj Close'] + df_init.loc[date, 'cash']
 
             std = float(df.loc[date, 'Std'])
-            #std_mean = float(df.loc[date, 'MeanOfStd'])
+            std_mean = float(df.loc[date, 'MeanOfStd'])
             value = float(df.loc[date, 'Adj Close'])
-            value_ago = float(df.loc[df_init.index[-4], 'Adj Close'])
+            value_ago_ago = float(df.loc[df_init.index[-3], 'Adj Close'])
+            value_ago = float(df.loc[df_init.index[-2], 'Adj Close'])
             upper = float(df.loc[date, 'bol_upper'])
             if std < std_mean:
-                if value > value_ago:
+                if value > value_ago and value_ago > value_ago_ago:
                     if value < upper:
                         df_end.loc[date, 'Adj Close'] = port_value/df.loc[date, 'Adj Close']
                         df_end.loc[date,'cash'] =0
@@ -188,21 +189,208 @@ class ShortTermStrategy:
             return (self.DayTrading(df_origin, df_init, df_end, calendar, capital, day)-capital)/capital*100
 
 class LongTermStrategy:
-    def __init__(self, url, etf_list, statement):
-        url = url+'FS_{0}_{1}.json'.format(etf_list, statement)
+    def __init__(self, url, etfname):
         self.url = url
+        self.etfname = etfname
 
+    def get_price_data(self, symbol, OnlyRecent=False):
+        self.symbol = symbol
+        url_price = self.url+'/FS_'+self.etfname+'_Value.json'
+        df = pd.read_json(url_price)
+
+        if OnlyRecent == True:
+            temp_df = df[df.Ticker.str.contains(symbol)].copy()
+            res = temp_df.loc[temp_df.index[-1], 'Adj Close']
+
+            return res
+
+        return df
+#        df_per = df[df.Attribute.str.contains('Trailing P/E')].copy()
+#        df_per['PER'] = df_per.loc[:, 'Recent'].astype(float)
+#        df_per = df_per.drop(['Attribute', 'Recent'], axis=1)
+#        df_per = df_per.set_index('Ticker')
+
+
+###################################################################################################
+    def get_stats(self, preprocessing = False):
+        url_stats = self.url+'/FS_'+self.etfname+'_stats.json'
+        df = pd.read_json(url_stats)
+        if preprocessing == True:
+            df_per = self.get_PER() # PER
+            df_psr = self.get_PSR() # Price/Sales
+            df_pbr = self.get_PBR() # Price/Book
+            df_peg = self.get_PEG() # Price/Earning growth
+            df_forper = self.get_FORPER() # Forward PER
+
+            # Concat mulit dataframe
+            df = pd.concat([df_per, df_psr, df_pbr, df_peg, df_forper], axis=1)
+
+        return df
+
+    def get_addstats(self, preprocessing = False):
+        url_addstats = self.url+'/FS_'+self.etfname+'_addstats.json'
+        df = pd.read_json(url_addstats)
+        if preprocessing == True:
+            df_roe = self.get_ROE() # ROE
+            df_roa = self.get_ROA() # ROA
+            df_pm = self.get_PM() # Profit Margin
+
+            # Concat mulit dataframe
+            df = pd.concat([df_roe, df_roa, df_pm], axis=1)
+
+        return df
+
+    def get_balsheets(self, preprocessing = False):
+        url_balsheets = self.url+'/FS_'+self.etfname+'_balsheets.json'
+        df = pd.read_json(url_balsheets)
+        if preprocessing == True:
+            df_ta = self.get_TA() # Total Assets
+
+            df = pd.concat([df_ta], axis=1)
+
+        return df
+
+    def get_income(self, preprocessing = False):
+        url_income = self.url+'/FS_'+self.etfname+'_income.json'
+        df = pd.read_json(url_income)
+        if preprocessing == True:
+            df_tr = self.get_TR() # Total revenue
+
+            df = pd.concat([df_tr], axis=1)
+
+        return df
+
+    def get_flow(self, preprocessing = False):
+        url_flow = self.url+'/FS_'+self.etfname+'_flow.json'
+        df = pd.read_json(url_flow)
+        if preprocessing == True:
+            df_div = self.get_DIV() # Dividends paid across companies
+            df_iss = self.get_ISS() # Issuance information
+
+            df = pd.concat([df_div, df_iss], axis=1)
+
+        return df
+
+###################################################################################################
+    ## For stats
+    def get_stats_element(slef):
+        pass
+        df = []
+
+        return df
     def get_PER(self):
-        df = pd.read_json(self.url)
-        df = df[df.Attribute.str.contains("Trailing P/E")]
-        df = df.reset_index()
-        df_per = df.loc[:,['Ticker','Recent']]
-        df_per = df_per.rename(columns = {'Recent': 'PER'})
-        df_per.set_index('Ticker', inplace = True)
-        df_per['PER'] = df_per['PER'].astype(float)
+        df = self.get_stats()
+        df_per = df[df.Attribute.str.contains('Trailing P/E')].copy()
+        df_per['PER'] = df_per.loc[:, 'Recent'].astype(float)
+        df_per = df_per.drop(['Attribute', 'Recent'], axis=1)
+        df_per = df_per.set_index('Ticker')
 
         return df_per
 
+    def get_PSR(self):
+        df = self.get_stats()
+        df_psr = df[df.Attribute.str.contains('Price/Sales')].copy()
+        df_psr['PSR'] = df_psr.loc[:, 'Recent'].astype(float)
+        df_psr = df_psr.drop(['Attribute', 'Recent'], axis=1)
+        df_psr = df_psr.set_index('Ticker')
+
+        return df_psr
+
+    def get_PBR(self):
+        df = self.get_stats()
+        df_pbr = df[df.Attribute.str.contains('Price/Book')].copy()
+        df_pbr['PBR'] = df_pbr.loc[:, 'Recent'].astype(float)
+        df_pbr = df_pbr.drop(['Attribute', 'Recent'], axis=1)
+        df_pbr = df_pbr.set_index('Ticker')
+
+        return df_pbr
+
+    def get_PEG(self):
+        df = self.get_stats()
+        df_peg = df[df.Attribute.str.contains('PEG')].copy()
+        df_peg['PEG'] = df_peg.loc[:, 'Recent'].astype(float)
+        df_peg = df_peg.drop(['Attribute', 'Recent'], axis=1)
+        df_peg = df_peg.set_index('Ticker')
+
+        return df_peg
+
+    def get_FORPER(self):
+        df = self.get_stats()
+        df_forper = df[df.Attribute.str.contains('Forward P/E')].copy()
+        df_forper['forPER'] = df_forper.loc[:, 'Recent'].astype(float)
+        df_forper = df_forper.drop(['Attribute', 'Recent'], axis=1)
+        df_forper = df_forper.set_index('Ticker')
+
+        return df_forper
+
+    ## For addstats
+    def get_ROE(self):
+        df = self.get_addstats()
+        df_roe = df[df.Attribute.str.contains('Return on Equity')].copy()
+        df_roe['ROE'] = df_roe.loc[:, 'Value']
+        df_roe = df_roe.drop(['Attribute', 'Value'], axis=1)
+        df_roe = df_roe.set_index('Ticker')
+
+        return df_roe
+
+    def get_ROA(self):
+        df = self.get_addstats()
+        df_roa = df[df.Attribute.str.contains('Return on Assets')].copy()
+        df_roa['ROA'] = df_roa.loc[:, 'Value']
+        df_roa = df_roa.drop(['Attribute', 'Value'], axis=1)
+        df_roa = df_roa.set_index('Ticker')
+
+        return df_roa
+
+    def get_PM(self):
+        df = self.get_addstats()
+        df_pm = df[df.Attribute.str.contains('Return on Assets')].copy()
+        df_pm['ProfitMargin'] = df_pm.loc[:, 'Value']
+        df_pm = df_pm.drop(['Attribute', 'Value'], axis=1)
+        df_pm = df_pm.set_index('Ticker')
+
+        return df_pm
+
+    ## For balance sheets
+    def get_TA(self):
+        df = self.get_balsheets()
+        df_ta = df[df.Breakdown == 'totalAssets'].copy()
+        df_ta['TotalAssets'] = df_ta.loc[:, 'Recent']
+        df_ta = df_ta.drop(['Breakdown', 'Recent'], axis=1)
+        df_ta = df_ta.set_index('Ticker')
+
+        return df_ta
+
+    ## For Income statements
+    def get_TR(self):
+        df = self.get_income()
+        df_tr = df[df.Breakdown == 'totalRevenue'].copy()
+        df_tr['TotalRevenue'] = df_tr.loc[:, 'Recent']
+        df_tr = df_tr.drop(['Breakdown', 'Recent'], axis=1)
+        df_tr = df_tr.set_index('Ticker')
+
+        return df_tr
+
+    ## For Cash flow
+    def get_DIV(self):
+        df = self.get_flow()
+        df_div = df[df.Breakdown == 'dividendsPaid'].copy()
+        df_div['DividendsPaid'] = df_div.loc[:, 'Recent']
+        df_div = df_div.drop(['Breakdown', 'Recent'], axis=1)
+        df_div = df_div.set_index('Ticker')
+
+        return df_div
+
+    def get_ISS(self):
+        df = self.get_flow()
+        df_iss = df[df.Breakdown == 'issuanceOfStock'].copy()
+        df_iss['Issuance'] = df_iss.loc[:, 'Recent']
+        df_iss = df_iss.drop(['Breakdown', 'Recent'], axis=1)
+        df_iss = df_iss.set_index('Ticker')
+
+        return df_iss
+
+###################################################################################################
     def LowPER(self, threshold= 10):
         df = self.get_PER()
         df_per = pd.DataFrame({'PER': []})
@@ -217,22 +405,18 @@ class LongTermStrategy:
 
         return df_per
 
-    def get_PBR(self):
-        df = pd.read_json(self.url)
-        df = df[df.Attribute.str.contains("Price/Book")]
-        df = df.reset_index()
-        df_pbr = df.loc[:,['Ticker','Recent']]
-        df_pbr = df_pbr.rename(columns = {'Recent': 'PBR'})
-        df_pbr.set_index('Ticker', inplace = True)
-        df_pbr['PBR'] = df_pbr['PBR'].astype(float)
-
-        return df_pbr
-
     def LowPBR(self, threshold=10):
         df = self.get_PBR()
         df = df.sort_values(by='PBR')
+        df = df.head(threshold)
 
         return df
+
+#    class MLStrategy:
+#        def __init__(self, url, etfname):
+#            self.url = url
+#            self.etfname = etfname
+
 
 class TrendStrategy:
     def __init__(self, symbol, start_day, end_day, keywords):

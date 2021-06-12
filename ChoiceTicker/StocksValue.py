@@ -6,7 +6,7 @@ from tqdm import tqdm
 import datetime
 
 td_1y = datetime.timedelta(weeks=52/2)
-start_day = datetime.datetime(2019,1,1)
+start_day = datetime.datetime(2010,1,1)
 today = datetime.datetime.now()
 #start_day = today-td_1y
 

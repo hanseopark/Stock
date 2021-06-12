@@ -11,7 +11,7 @@ td_1y = datetime.timedelta(weeks=52/2)
 today = datetime.datetime.now()
 start_day = today - td_1y
 
-symbol = input('Write ticker name like aapl: ')
+symbol = input('Write ticker name like aapl: ') #^IXIC
 
 stock = Stocks(symbol, start_day, today)
 

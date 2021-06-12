@@ -4,7 +4,6 @@ import pandas_datareader as pdr
 import yfinance as yf
 import yahoo_fin.stock_info as yfs
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 
 import json
 import datetime
@@ -47,15 +46,17 @@ url = '/Users/hanseopark/Work/stock/data_origin/' # in data
 
 # Select strategy for situation
 LimitValue = 0
-stats = input('Choice statement (PER, PBR, Trend): ')
+stats = input('Choice statement (PER, PBR, Trend, ML): ')
 if (stats == 'PER' or stats == "PBR"):
-    strategy = LongTermStrategy(url, filename, statement= 'stats') # Select Long term strategy
+    strategy = LongTermStrategy(url, filename) # Select Long term strategy
     s2 = input('Set {} point(10, 20, 30): '.format(stats))
     LimitValue = int(s2)
 elif stats == 'Trend':
     symbol = input('Write ticker name like aapl: ')
     dow_list = [symbol]
     strategy = TrendStrategy(symbol, start_day, today, keywords=dow_list)
+elif stats == 'ML':
+    strategy = LongTermStrategy(url, filename) # Select Long term strategy
 
 # Perform strategy and save
 url_threshold = '/Users/hanseopark/Work/stock/data_origin/table{0}_{1}_{2}.json'.format(stats, filename,LimitValue)
@@ -96,6 +97,32 @@ elif stats == 'Trend':
     plt.grid()
     plt.show()
 
+elif stats == 'ML':
+    url = '/Users/hanseopark/Work/stock/data_origin'
+
+    # data preprosseing from class
+        ## price of stock
+    df_price = pd.DataFrame({'Recent_price': []})
+    for ticker in dow_list:
+        price = strategy.get_price_data(ticker, OnlyRecent=True)
+        df_price.loc[ticker, 'Recent_price'] = price
+
+        ## Financial statement of stock
+    df_stats = strategy.get_stats(preprocessing=True)
+    df_addstats = strategy.get_addstats(True)
+    df_balsheets = strategy.get_balsheets(True)
+    df_income = strategy.get_income(True)
+    df_flow = strategy.get_flow(True)
+
+    print(df_price)
+    print(df_stats)
+    print(df_addstats)
+    print(df_balsheets)
+    print(df_income)
+    print(df_flow)
+
+    df = pd.concat([df_stats, df_addstats, df_balsheets, df_income, df_flow, df_price], axis=1)
+    #print(df)
 
 
 

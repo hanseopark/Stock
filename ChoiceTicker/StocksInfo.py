@@ -154,7 +154,3 @@ for s in list_stats:
     df.to_json(url)
 
 
-
-
-
-

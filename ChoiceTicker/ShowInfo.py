@@ -118,7 +118,7 @@ df_tr = combined_income[combined_income.Breakdown == 'totalRevenue']
 
 # see cash flow
 # get dividends paid across companies
-df_div = combined_flow[combined_flow.Breakdown == 'dividendsPai']
+df_div = combined_flow[combined_flow.Breakdown == 'dividendsPaid']
 
 # get stock issuance information
 df_iss = combined_flow[combined_flow.Breakdown == 'isuuanceOfStock']

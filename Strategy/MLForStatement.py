@@ -5,7 +5,6 @@ import yfinance as yf
 import yahoo_fin.stock_info as yfs
 
 import json
-from classStrategy import BasicStrategy
 
 ## Get list of Dow tickers
 dow_list = yfs.tickers_dow()
@@ -32,12 +31,14 @@ elif s == 'selected':
 print(dow_list)
 
 ## Read data
-url_stats = '/Users/hanseopark/Work/stock/data/FS_{0}_stats.json'.format(filename)
-url_addstats = '/Users/hanseopark/Work/stock/data/FS_{0}_addstats.json'.format(filename)
-url_balsheets = '/Users/hanseopark/Work/stock/data/FS_{0}_balsheets.json'.format(filename)
-url_income = '/Users/hanseopark/Work/stock/data/FS_{0}_income.json'.format(filename)
-url_flow = '/Users/hanseopark/Work/stock/data/FS_{0}_flow.json'.format(filename)
+url_price = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_Value.json'.format(filename)
+url_stats = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_stats.json'.format(filename)
+url_addstats = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_addstats.json'.format(filename)
+url_balsheets = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_balsheets.json'.format(filename)
+url_income = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_income.json'.format(filename)
+url_flow = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_flow.json'.format(filename)
 
+combined_price = pd.read_json(url_price)
 combined_stats = pd.read_json(url_stats)
 combined_addstats = pd.read_json(url_addstats)
 combined_balsheets = pd.read_json(url_balsheets)
@@ -45,35 +46,47 @@ combined_income = pd.read_json(url_income)
 combined_flow = pd.read_json(url_flow)
 
 ## Data preprocesing
+# get price for eact stock
+df_price = pd.DataFrame({'Recent_price': []})
+for symbol in dow_list:
+    temp_df = combined_price[combined_price.Ticker.str.contains(symbol)]
+    res = temp_df.loc[temp_df.index[-1], 'Adj Close']
+    df_price.loc[symbol, 'Recent_price'] = res
+
 # get P/E ratio for each stock
 df_per = combined_stats[combined_stats.Attribute.str.contains("Trailing P/E")]
 df_per = df_per.reset_index()
-df_per['PER'] = df_per['Recent']
+df_per['PER'] = df_per['Recent'].astype(float)
 df_per = df_per.drop(['index', 'Attribute', 'Recent'], axis = 1)
+df_per = df_per.set_index('Ticker')
 
 # get P/S ratio for each stock
 df_psr = combined_stats[combined_stats.Attribute.str.contains('Price/Sales')]
 df_psr = df_psr.reset_index()
-df_psr['PSR'] = df_psr['Recent']
+df_psr['PSR'] = df_psr['Recent'].astype(float)
 df_psr = df_psr.drop(['index', 'Attribute', 'Recent'], axis = 1)
+df_psr = df_psr.set_index('Ticker')
 
 # get Price-to-Book ratio for each stock
 df_pbr = combined_stats[combined_stats.Attribute.str.contains("Price/Book")]
 df_pbr = df_pbr.reset_index()
-df_pbr['PBR'] = df_pbr['Recent']
+df_pbr['PBR'] = df_pbr['Recent'].astype(float)
 df_pbr = df_pbr.drop(['index', 'Attribute', 'Recent'], axis = 1)
+df_pbr = df_pbr.set_index('Ticker')
 
 # get PEG ratio for each stock
 df_pegr = combined_stats[combined_stats.Attribute.str.contains('PEG')]
 df_pegr = df_pegr.reset_index()
-df_pegr['PEG ratio'] = df_pegr['Recent']
+df_pegr['PEG ratio'] = df_pegr['Recent'].astype(float)
 df_pegr = df_pegr.drop(['index', 'Attribute', 'Recent'], axis = 1)
+df_pegr = df_pegr.set_index('Ticker')
 
 # get foward P/E ratio for each stock
 df_fowper = combined_stats[combined_stats.Attribute.str.contains('Forward P/E')]
 df_fowper = df_fowper.reset_index()
-df_fowper['Forward PER'] = df_fowper['Recent']
+df_fowper['Forward PER'] = df_fowper['Recent'].astype(float)
 df_fowper = df_fowper.drop(['index', 'Attribute', 'Recent'], axis = 1)
+df_fowper = df_fowper.set_index('Ticker')
 
 # see additional stats
 # get ROE for each stock
@@ -81,18 +94,21 @@ df_roe = combined_addstats[combined_addstats.Attribute.str.contains('Return on E
 df_roe = df_roe.reset_index()
 df_roe['ROE'] = df_roe['Value']
 df_roe = df_roe.drop(['index', 'Attribute', 'Value'], axis = 1)
+df_roe = df_roe.set_index('Ticker')
 
 # get ROA for each stock
 df_roa = combined_addstats[combined_addstats.Attribute.str.contains('Return on Assets')]
 df_roa = df_roa.reset_index()
 df_roa['ROA'] = df_roa['Value']
 df_roa = df_roa.drop(['index', 'Attribute', 'Value'], axis = 1)
+df_roa = df_roa.set_index('Ticker')
 
 # get profit margin for each stock
 df_pm = combined_addstats[combined_addstats.Attribute.str.contains('Profit Margin')]
 df_pm = df_pm.reset_index()
 df_pm['Profit Margin'] = df_pm['Value']
 df_pm = df_pm.drop(['index', 'Attribute', 'Value'], axis = 1)
+df_pm = df_pm.set_index('Ticker')
 
 
 # see balance sheets
@@ -101,6 +117,7 @@ df_ta = combined_balsheets[combined_balsheets.Breakdown == 'totalAssets']
 df_ta = df_ta.reset_index()
 df_ta['Total assets'] = df_ta['Recent']
 df_ta = df_ta.drop(['index', 'Breakdown', 'Recent'], axis = 1)
+df_ta = df_ta.set_index('Ticker')
 
 # See income statement
 # get total revenue
@@ -108,33 +125,30 @@ df_tr = combined_income[combined_income.Breakdown == 'totalRevenue']
 df_tr = df_tr.reset_index()
 df_tr['Total revenue'] = df_tr['Recent']
 df_tr = df_tr.drop(['index', 'Breakdown', 'Recent'], axis = 1)
+df_tr = df_tr.set_index('Ticker')
 
 
 # see cash flow
 # get dividends paid across companies
-df_div = combined_flow[combined_flow.Breakdown == 'dividendsPai']
+df_div = combined_flow[combined_flow.Breakdown == 'dividendsPaid']
 df_div = df_div.reset_index()
 df_div['Dividends'] = df_div['Recent']
 df_div = df_div.drop(['index', 'Breakdown', 'Recent'], axis = 1)
+df_div = df_div.set_index('Ticker')
 
 # get stock issuance information
-df_iss = combined_flow[combined_flow.Breakdown == 'isuuanceOfStock']
+df_iss = combined_flow[combined_flow.Breakdown == 'issuanceOfStock']
 df_iss = df_iss.reset_index()
 df_iss['Isuuance'] = df_iss['Recent']
 df_iss = df_iss.drop(['index', 'Breakdown', 'Recent'], axis = 1)
+df_iss = df_iss.set_index('Ticker')
 
 # merge dataframe
-df = pd.merge(df_per, df_psr, how='outer', on='Ticker')
-df = pd.merge(df, df_pbr, how='outer', on='Ticker')
-df = pd.merge(df, df_pegr, how='outer', on='Ticker')
-df = pd.merge(df, df_fowper, how='outer', on='Ticker')
-df = pd.merge(df, df_roe, how='outer', on='Ticker')
-df = pd.merge(df, df_roa, how='outer', on='Ticker')
-df = pd.merge(df, df_pm, how='outer', on='Ticker')
-df = pd.merge(df, df_ta, how='outer', on='Ticker')
-df = pd.merge(df, df_tr, how='outer', on='Ticker')
-df = pd.merge(df, df_div, how='outer', on='Ticker')
-df = pd.merge(df, df_iss, how='outer', on='Ticker')
-
+df = pd.concat([df_per, df_psr, df_pbr, df_pegr, df_fowper, df_roe, df_roa, df_pm, df_ta, df_tr, df_div, df_iss, df_price], axis =1)
 print(df)
+
+
+## Correlation for features
+corramt = df.corr()
+top_corr_features = corrmat.index[abs(cormat[''])]
 
