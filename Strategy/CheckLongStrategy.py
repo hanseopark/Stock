@@ -2,9 +2,11 @@ import datetime
 import pandas as pd
 import pandas_datareader as pdr
 import yahoo_fin.stock_info as yfs
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib import gridspec
+import seaborn as sns
 
 from tqdm import tqdm
 import datetime
@@ -52,62 +54,109 @@ print('*'*100)
 LimitValue = 0
 url = '/Users/hanseopark/Work/stock/data_origin/' # in data
 
-stats = input('Choice statement (PER, PBR, Trend, ML): ')
+stats = input('Choice statement (PER, PBR, Trend, ML, Pre): ')
 if (stats == 'PER' or stats == "PBR"):
     strategy = LongTermStrategy(url, filename)
     s2 = input('Set {} point(10, 20, 30): '.format(stats))
     LimitValue = int(s2)
+elif (stats == 'ML'):
+    strategy = LongTermStrategy(url, filename)
+
+elif (stats == 'Pre'):
+    strategy = LongTermStrategy(url, filename)
 
 # Perform strategy and save
-url_threshold = '/Users/hanseopark/Work/stock/data_origin/table{0}_{1}_{2}.json'.format(stats, filename,LimitValue)
-df_per = strategy.LowPER(threshold = LimitValue)
-df_per.to_json(url_threshold)
-list_per = df_per.index.to_list()
+if (stats == 'PER' or stats == 'PBR'):
+    url_threshold = '/Users/hanseopark/Work/stock/data_origin/table{0}_{1}_{2}.json'.format(stats, filename,LimitValue)
+    if (stats == 'PER'):
+        df_per = strategy.LowPER(threshold = LimitValue)
+    elif (stats == 'PBR'):
+        df_per = strategy.LowPBR(threshold = LimitValue)
+    df_per.to_json(url_threshold)
+    list_per = df_per.index.to_list()
 
-df_st = pdr.DataReader(standard_index,'yahoo', start_day, today)
-init_st_price = df_st.loc[df_st.index[0], 'Adj Close']
-last_st_price = df_st.loc[df_st.index[-1], 'Adj Close']
-return_st_price = (last_st_price/init_st_price)*100
-list_return = []
+    df_st = pdr.DataReader(standard_index,'yahoo', start_day, today)
+    init_st_price = df_st.loc[df_st.index[0], 'Adj Close']
+    last_st_price = df_st.loc[df_st.index[-1], 'Adj Close']
+    return_st_price = (last_st_price/init_st_price)*100
+    list_return = []
 
-# Figure
-fig = plt.figure(figsize=(12,8))
-gs = gridspec.GridSpec(2,1,height_ratios=[1,1])
-ax_main = plt.subplot(gs[0])
-ax_1 = plt.subplot(gs[1])
-index = df_st.index.astype('str')
-def x_date(x,pos):
-    try:
-        return index[int(x-0.5)][:7]
-    except IndexError:
-        return ''
-ax_main.xaxis.set_major_locator(ticker.MaxNLocator(10))
-ax_main.xaxis.set_major_formatter(ticker.FuncFormatter(x_date))
+    # Figure
+    fig = plt.figure(figsize=(12,8))
+    gs = gridspec.GridSpec(2,1,height_ratios=[1,1])
+    ax_main = plt.subplot(gs[0])
+    ax_1 = plt.subplot(gs[1])
+    index = df_st.index.astype('str')
+    def x_date(x,pos):
+        try:
+            return index[int(x-0.5)][:7]
+        except IndexError:
+            return ''
+    ax_main.xaxis.set_major_locator(ticker.MaxNLocator(10))
+    ax_main.xaxis.set_major_formatter(ticker.FuncFormatter(x_date))
 
-#df_price = strategy.get_price_data(dow_list)
-df_price = strategy.get_price_data(list_per)
-print(df_price)
+    #df_price = strategy.get_price_data(dow_list)
+    df_price = strategy.get_price_data(list_per)
+    print(df_price)
 
-for tic in tqdm(list_per):
-    temp_df = df_price[df_price.Ticker == tic].copy()
-    init_price = temp_df.loc[temp_df.index[0], 'Adj Close']
-    last_price = temp_df.loc[temp_df.index[-1], 'Adj Close']
-    return_price = (last_price/init_price)*100
-    ax_main.plot(index, temp_df['Adj Close'], label=tic)
-    # for ax_1
-    list_return.append(return_price)
+    for tic in tqdm(list_per):
+        temp_df = df_price[df_price.Ticker == tic].copy()
+        init_price = temp_df.loc[temp_df.index[0], 'Adj Close']
+        last_price = temp_df.loc[temp_df.index[-1], 'Adj Close']
+        return_price = (last_price/init_price)*100
+        ax_main.plot(index, temp_df['Adj Close'], label=tic)
+        # for ax_1
+        list_return.append(return_price)
 
-# ax_main
-ax_main.plot(index, df_st['Adj Close'], label='Dow index (^DJI)')
-ax_main.legend(loc=2)
-ax_main.set_yscale('log')
+    # ax_main
+    ax_main.plot(index, df_st['Adj Close'], label='Dow index (^DJI)')
+    ax_main.legend(loc=2)
+    ax_main.set_yscale('log')
 
-# ax_1
-ax_1.bar(list_per, list_return)
-ax_1.set_ylabel('Return (Last Price / Initial Price)')
-ax_1.axhline(y=return_st_price, color='r', label=standard_index)
-ax_1.axhline(y=sum(list_return)/len(list_return), color='g', label='Mean of tickers')
-ax_1.legend(loc=2)
+    # ax_1
+    ax_1.bar(list_per, list_return)
+    ax_1.set_ylabel('Return (Last Price / Initial Price)')
+    ax_1.axhline(y=return_st_price, color='r', label=standard_index)
+    ax_1.axhline(y=sum(list_return)/len(list_return), color='g', label='Mean of tickers')
+    ax_1.legend(loc=2)
 
-plt.show()
+    plt.show()
+
+elif (stats == 'Pre' or 'ML'):
+    # Price of stock
+    #url_price = url+'FS_{0}_Value.json'.format(filename)
+    df_price = strategy.get_price_data(etf_list=dow_list, OnlyRecent=True)
+
+    # Rearange dataframe for preprocessing
+    df_stats = strategy.get_stats_element(dow_list)
+    #print(df_stats)
+
+    df_addstats = strategy.get_addstats_element(dow_list)
+    #print(df_addstats)
+
+    df_balsheets = strategy.get_balsheets_element(dow_list)
+    #print(df_balsheets)
+
+    df_income = strategy.get_income_element(dow_list)
+    #print(df_income)
+
+    df_flow = strategy.get_flow_element(dow_list)
+    #print(df_flow)
+
+    df = pd.concat([df_price, df_stats, df_addstats, df_balsheets, df_income, df_flow], axis=1)
+    df.dropna()
+    #print(df)
+
+    if (stats == 'ML'):
+        # Split data and test
+        train_df, test_df = train_test_split(df, test_size=0.2)
+
+        ## Correlation for features
+        corrmat = train_df.corr()
+        top_corr_features = corrmat.index[abs(corrmat['Recent_price'])>0]
+
+        # Heatmap
+        plt.figure(figsize=(12,8))
+        plt_corr = sns.heatmap(train_df[top_corr_features].corr(), annot=True)
+        plt.show()
 

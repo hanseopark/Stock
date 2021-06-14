@@ -193,18 +193,22 @@ class LongTermStrategy:
         self.url = url
         self.etfname = etfname
 
-    def get_price_data(self, symbol, OnlyRecent=False):
-        self.symbol = symbol
+    def get_price_data(self, etf_list=[], OnlyRecent=False):
+        self.etf_list = etf_list
         url_price = self.url+'/FS_'+self.etfname+'_Value.json'
-        df = pd.read_json(url_price)
+        combined_price = pd.read_json(url_price)
+        df_price = pd.DataFrame({'Recent_price': []})
 
         if OnlyRecent == True:
-            temp_df = df[df.Ticker.str.contains(symbol)].copy()
-            res = temp_df.loc[temp_df.index[-1], 'Adj Close']
+            for symbol in self.etf_list:
+                temp_df = combined_price[combined_price.Ticker.str.contains(symbol)].copy()
+                res = temp_df.loc[temp_df.index[-1], 'Adj Close']
+                df_price.loc[symbol, 'Recent_price'] =res
+            return df_price
+        else:
+            df_price = combined_price.copy()
+            return df_price
 
-            return res
-
-        return df
 #        df_per = df[df.Attribute.str.contains('Trailing P/E')].copy()
 #        df_per['PER'] = df_per.loc[:, 'Recent'].astype(float)
 #        df_per = df_per.drop(['Attribute', 'Recent'], axis=1)
@@ -273,11 +277,20 @@ class LongTermStrategy:
 
 ###################################################################################################
     ## For stats
-    def get_stats_element(slef):
-        pass
-        df = []
+    def get_stats_element(self, etf_list =['AAPL']):
+        df_stats = self.get_stats()
+        self.etf_list = etf_list
+        temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
+        list_df = temp_df['Attribute'].to_list()
+        df = pd.DataFrame(columns=list_df, index = self.etf_list)
+        for ticker in self.etf_list:
+            for att in list_df:
+                temp_df_stats = df_stats[df_stats.Attribute == att].copy()
+                temp_df_stats = temp_df_stats.set_index('Ticker')
+                df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
 
         return df
+
     def get_PER(self):
         df = self.get_stats()
         df_per = df[df.Attribute.str.contains('Trailing P/E')].copy()
@@ -324,6 +337,20 @@ class LongTermStrategy:
         return df_forper
 
     ## For addstats
+    def get_addstats_element(self, etf_list =['AAPL']):
+        df_stats = self.get_addstats()
+        self.etf_list = etf_list
+        temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
+        list_df = temp_df['Attribute'].to_list()
+        df = pd.DataFrame(columns=list_df, index = self.etf_list)
+        for ticker in self.etf_list:
+            for att in list_df:
+                temp_df_stats = df_stats[df_stats.Attribute == att].copy()
+                temp_df_stats = temp_df_stats.set_index('Ticker')
+                df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Value']
+
+        return df
+
     def get_ROE(self):
         df = self.get_addstats()
         df_roe = df[df.Attribute.str.contains('Return on Equity')].copy()
@@ -352,6 +379,23 @@ class LongTermStrategy:
         return df_pm
 
     ## For balance sheets
+
+    def get_balsheets_element(self, etf_list =['AAPL']):
+        df_stats = self.get_balsheets()
+        self.etf_list = etf_list
+        temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
+        list_df = temp_df['Breakdown'].to_list()
+        df = pd.DataFrame(columns=list_df, index = self.etf_list)
+        for ticker in self.etf_list:
+            temp_df = df_stats[df_stats.Ticker == ticker].copy()
+            list_df = temp_df['Breakdown'].to_list()
+            for att in list_df:
+                temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
+                temp_df_stats = temp_df_stats.set_index('Ticker')
+                df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
+
+        return df
+
     def get_TA(self):
         df = self.get_balsheets()
         df_ta = df[df.Breakdown == 'totalAssets'].copy()
@@ -362,6 +406,21 @@ class LongTermStrategy:
         return df_ta
 
     ## For Income statements
+
+    def get_income_element(self, etf_list =['AAPL']):
+        df_stats = self.get_income()
+        self.etf_list = etf_list
+        temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
+        list_df = temp_df['Breakdown'].to_list()
+        df = pd.DataFrame(columns=list_df, index = self.etf_list)
+        for ticker in self.etf_list:
+            for att in list_df:
+                temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
+                temp_df_stats = temp_df_stats.set_index('Ticker')
+                df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
+
+        return df
+
     def get_TR(self):
         df = self.get_income()
         df_tr = df[df.Breakdown == 'totalRevenue'].copy()
@@ -372,6 +431,23 @@ class LongTermStrategy:
         return df_tr
 
     ## For Cash flow
+
+    def get_flow_element(self, etf_list =['AAPL']):
+        df_stats = self.get_flow()
+        self.etf_list = etf_list
+        temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
+        list_df = temp_df['Breakdown'].to_list()
+        df = pd.DataFrame(columns=list_df, index = self.etf_list)
+        for ticker in self.etf_list:
+            temp_df = df_stats[df_stats.Ticker == ticker].copy()
+            list_df = temp_df['Breakdown'].to_list()
+            for att in list_df:
+                temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
+                temp_df_stats = temp_df_stats.set_index('Ticker')
+                df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
+
+        return df
+
     def get_DIV(self):
         df = self.get_flow()
         df_div = df[df.Breakdown == 'dividendsPaid'].copy()

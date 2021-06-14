@@ -93,6 +93,7 @@ for ticker in tqdm(dow_list):
     except:
         error_symbols.append(ticker)
 
+print('error symol: ', error_symbols)
 
 recent_sheets = {ticker : sheet.iloc[:,:1] for ticker, sheet in dow_balsheets.items()}
 for ticker in recent_sheets.keys():
