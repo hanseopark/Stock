@@ -10,8 +10,8 @@ import datetime
 from class_Strategy import LongTermStrategy, TrendStrategy
 
 # Get datetime for price of stock
-#td_1y = datetime.timedelta(weeks=52/2)
-td_1y = datetime.timedelta(weeks=52)
+td_1y = datetime.timedelta(weeks=52/2)
+#td_1y = datetime.timedelta(weeks=52*3)
 today = datetime.datetime.now()
 start_day = today - td_1y
 
@@ -52,9 +52,10 @@ if (stats == 'PER' or stats == "PBR"):
     s2 = input('Set {} point(10, 20, 30): '.format(stats))
     LimitValue = int(s2)
 elif stats == 'Trend':
-    symbol = input('Write ticker name like aapl: ')
-    dow_list = [symbol]
-    strategy = TrendStrategy(symbol, start_day, today, keywords=dow_list)
+    #symbol = input('Write ticker name like aapl: ')
+    #dow_list = [symbol]
+    #strategy = TrendStrategy(symbol, start_day, today, keywords=dow_list)
+    strategy = TrendStrategy(dow_list, start_day, today, keywords=dow_list)
 elif stats == 'ML':
     strategy = LongTermStrategy(url, filename) # Select Long term strategy
 
@@ -72,30 +73,34 @@ elif stats == 'PBR':
 
 elif stats == 'Trend':
     df_tr = strategy.get_trend_data()
-    df_price = strategy.get_price_data(nomalization = True)
-
-    index = df_price.astype('str')
-    fig = plt.figure(figsize=(10,10))
-    ax_main = plt.subplot(1,1,1)
-
-    def x_date(x,pos):
-        try:
-            return index[int(x-0.5)][:7]
-        except indexerror:
-            return ''
-
-    # ax_main
+    url = '/Users/hanseopark/Work/stock/data_origin/Trend_{0}.json'.format(filename)
+    df_tr.to_json(url)
+    print(df_tr)
+#    df_price = strategy.get_price_data(nomalization = True)
+#    #print(df_price)
+#
+#    index = df_price.astype('str')
+#    fig = plt.figure(figsize=(10,10))
+#    ax_main = plt.subplot(1,1,1)
+#
+#    def x_date(x,pos):
+#        try:
+#            return index[int(x-0.5)][:7]
+#        except indexerror:
+#            return ''
+#
+#    # ax_main
 #    ax_main.xaxis.set_major_locator(ticker.maxnlocator(10))
 #    ax_main.xaxis.set_major_formatter(ticker.funcformatter(x_date))
-    ax_main.set_title("Stock's value with google trend", fontsize=22 )
-    #ax_main.plot(df_price['Adj Close'], label='ORLY')
-    for tic in dow_list:
-        ax_main.plot(df_tr[tic], label='Trend')
-    ax_main.plot(df_price['Adj Close'], label="Stock's value")
-    ax_main.legend(loc=2)
-
-    plt.grid()
-    plt.show()
+#    ax_main.set_title("Stock's value with google trend", fontsize=22 )
+#    #ax_main.plot(df_price['Adj Close'], label='ORLY')
+#    for tic in dow_list:
+#        ax_main.plot(df_tr[tic], label='Trend')
+#    ax_main.plot(df_price['Adj Close'], label="Stock's value")
+#    ax_main.legend(loc=2)
+#
+#    plt.grid()
+#    plt.show()
 
 elif stats == 'ML':
     url = '/Users/hanseopark/Work/stock/data_origin'

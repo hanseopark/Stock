@@ -140,7 +140,7 @@ print(combined_flow)
 list_stats = ['stats', 'addstats', 'balsheets', 'income', 'flow']
 #url = '../data/FS_{0}_{1}'.format(filename,stats)
 for s in list_stats:
-    url = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_{1}.json'.format(filename, s)
+    url = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_{1}'.format(filename, s)
     if s == 'stats':
         df = combined_stats
     elif s == 'addstats':
@@ -151,6 +151,7 @@ for s in list_stats:
         df = combined_income
     elif s == 'flow':
         df = combined_flow
-    df.to_json(url)
+    df.to_json(url+'.json')
+    df.to_csv(url+'.csv')
 
 

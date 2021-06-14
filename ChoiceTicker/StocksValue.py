@@ -49,5 +49,6 @@ combined_value= combined_value.rename(columns={'level_0': 'Ticker'})
 
 print(combined_value)
 
-url = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_Value.json'.format(filename)
-combined_value.to_json(url)
+url = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_Value'.format(filename)
+combined_value.to_json(url+'.json')
+combined_value.to_csv(url+'.csv')

@@ -424,7 +424,6 @@ class TrendStrategy:
         self.start_day = start_day
         self.end_day = end_day
         self.keywords = keywords
-        self.yfticker = yf.Ticker(symbol)
 
     def get_price_data(self, nomalization = False):
         df_price = pdr.DataReader(self.symbol, 'yahoo',self.start_day, self.end_day)
@@ -438,14 +437,18 @@ class TrendStrategy:
         #pytrends = TrendReq(hl='en-US', tz=360, timeout=(10,25), proxies=['https://34.203.233.13:80',], retries=2, backoff_factor=0.1, requests_args={'verify':False})
         #pytrends = TrendReq(hl='en-US', tz=360, timeout=(10,25), proxies=['https://34.203.233.13:80',])
         df = pd.DataFrame()
+        error_symbol = []
         for ticker in tqdm(self.keywords):
             temp_list = []
             temp_list.append(ticker)
-            pytrend.build_payload(kw_list=temp_list, timeframe='today 12-m')
-            df_res = pytrend.interest_over_time()
-            df[ticker] = df_res.loc[:, ticker]
-            df[ticker] = df[ticker]/df[ticker].max()
-
+            try:
+                pytrend.build_payload(kw_list=temp_list, timeframe='today 12-m')
+                df_res = pytrend.interest_over_time()
+                df[ticker] = df_res.loc[:, ticker]
+                df[ticker] = df[ticker]/df[ticker].max()
+            except:
+                error_symbol.append(ticker)
+        print(error_symbol)
         return df
         #return pytrend
 
