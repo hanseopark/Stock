@@ -179,7 +179,7 @@ elif (stats == 'Pre' or 'ML'):
         print(df)
 
     else:
-        print('##################### Load Data .... ##############################')
+        print('\n----------------------------- LOAD DATA ---------------------------------\n')
         df_price = pd.read_csv(url_pre_price+'.csv')
         df_stats = pd.read_csv(url_pre_stats+'.csv')
         df_addstats = pd.read_csv(url_pre_addstats+'.csv')
