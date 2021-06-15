@@ -193,14 +193,21 @@ class LongTermStrategy:
         self.url = url
         self.etfname = etfname
 
+    def get_ticker_list(self):
+        df = self.get_stats()
+        list_ticker = sorted(list(set(df['Ticker'].to_list())))
+
+        return list_ticker
+
     def get_price_data(self, etf_list=[], OnlyRecent=False):
         self.etf_list = etf_list
-        url_price = self.url+'/FS_'+self.etfname+'_Value.json'
+        url_price = self.url+'/data_origin/FS_'+self.etfname+'_Value.json'
         combined_price = pd.read_json(url_price)
         df_price = pd.DataFrame({'Recent_price': []})
 
         if OnlyRecent == True:
-            for symbol in self.etf_list:
+            print('For Price')
+            for symbol in tqdm(self.etf_list):
                 temp_df = combined_price[combined_price.Ticker.str.contains(symbol)].copy()
                 res = temp_df.loc[temp_df.index[-1], 'Adj Close']
                 df_price.loc[symbol, 'Recent_price'] =res
@@ -209,15 +216,9 @@ class LongTermStrategy:
             df_price = combined_price.copy()
             return df_price
 
-#        df_per = df[df.Attribute.str.contains('Trailing P/E')].copy()
-#        df_per['PER'] = df_per.loc[:, 'Recent'].astype(float)
-#        df_per = df_per.drop(['Attribute', 'Recent'], axis=1)
-#        df_per = df_per.set_index('Ticker')
-
-
 ###################################################################################################
     def get_stats(self, preprocessing = False):
-        url_stats = self.url+'/FS_'+self.etfname+'_stats.json'
+        url_stats = self.url+'/data_origin/FS_'+self.etfname+'_stats.json'
         df = pd.read_json(url_stats)
         if preprocessing == True:
             df_per = self.get_PER() # PER
@@ -232,7 +233,7 @@ class LongTermStrategy:
         return df
 
     def get_addstats(self, preprocessing = False):
-        url_addstats = self.url+'/FS_'+self.etfname+'_addstats.json'
+        url_addstats = self.url+'/data_origin/FS_'+self.etfname+'_addstats.json'
         df = pd.read_json(url_addstats)
         if preprocessing == True:
             df_roe = self.get_ROE() # ROE
@@ -245,7 +246,7 @@ class LongTermStrategy:
         return df
 
     def get_balsheets(self, preprocessing = False):
-        url_balsheets = self.url+'/FS_'+self.etfname+'_balsheets.json'
+        url_balsheets = self.url+'/data_origin/FS_'+self.etfname+'_balsheets.json'
         df = pd.read_json(url_balsheets)
         if preprocessing == True:
             df_ta = self.get_TA() # Total Assets
@@ -255,7 +256,7 @@ class LongTermStrategy:
         return df
 
     def get_income(self, preprocessing = False):
-        url_income = self.url+'/FS_'+self.etfname+'_income.json'
+        url_income = self.url+'/data_origin/FS_'+self.etfname+'_income.json'
         df = pd.read_json(url_income)
         if preprocessing == True:
             df_tr = self.get_TR() # Total revenue
@@ -265,7 +266,7 @@ class LongTermStrategy:
         return df
 
     def get_flow(self, preprocessing = False):
-        url_flow = self.url+'/FS_'+self.etfname+'_flow.json'
+        url_flow = self.url+'/data_origin/FS_'+self.etfname+'_flow.json'
         df = pd.read_json(url_flow)
         if preprocessing == True:
             df_div = self.get_DIV() # Dividends paid across companies
@@ -283,7 +284,10 @@ class LongTermStrategy:
         temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
         list_df = temp_df['Attribute'].to_list()
         df = pd.DataFrame(columns=list_df, index = self.etf_list)
-        for ticker in self.etf_list:
+        print('For stats')
+        for ticker in tqdm(self.etf_list):
+            temp_df = df_stats[df_stats.Ticker == ticker].copy()
+            list_df = temp_df['Attribute'].to_list()
             for att in list_df:
                 temp_df_stats = df_stats[df_stats.Attribute == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
@@ -343,7 +347,10 @@ class LongTermStrategy:
         temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
         list_df = temp_df['Attribute'].to_list()
         df = pd.DataFrame(columns=list_df, index = self.etf_list)
-        for ticker in self.etf_list:
+        print('For addstats')
+        for ticker in tqdm(self.etf_list):
+            temp_df = df_stats[df_stats.Ticker == ticker].copy()
+            list_df = temp_df['Attribute'].to_list()
             for att in list_df:
                 temp_df_stats = df_stats[df_stats.Attribute == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
@@ -386,7 +393,8 @@ class LongTermStrategy:
         temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
         list_df = temp_df['Breakdown'].to_list()
         df = pd.DataFrame(columns=list_df, index = self.etf_list)
-        for ticker in self.etf_list:
+        print('For balance sheets')
+        for ticker in tqdm(self.etf_list):
             temp_df = df_stats[df_stats.Ticker == ticker].copy()
             list_df = temp_df['Breakdown'].to_list()
             for att in list_df:
@@ -413,7 +421,10 @@ class LongTermStrategy:
         temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
         list_df = temp_df['Breakdown'].to_list()
         df = pd.DataFrame(columns=list_df, index = self.etf_list)
-        for ticker in self.etf_list:
+        print('For income statements')
+        for ticker in tqdm(self.etf_list):
+            list_df = temp_df['Breakdown'].to_list()
+            df = pd.DataFrame(columns=list_df, index = self.etf_list)
             for att in list_df:
                 temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
@@ -438,7 +449,8 @@ class LongTermStrategy:
         temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
         list_df = temp_df['Breakdown'].to_list()
         df = pd.DataFrame(columns=list_df, index = self.etf_list)
-        for ticker in self.etf_list:
+        print('For cash flow')
+        for ticker in tqdm(self.etf_list):
             temp_df = df_stats[df_stats.Ticker == ticker].copy()
             list_df = temp_df['Breakdown'].to_list()
             for att in list_df:

@@ -1,4 +1,5 @@
 import datetime
+import os.path
 import pandas as pd
 import pandas_datareader as pdr
 import yahoo_fin.stock_info as yfs
@@ -52,22 +53,24 @@ print('*'*100)
 
 # Select strategy for situation
 LimitValue = 0
-url = '/Users/hanseopark/Work/stock/data_origin/' # in data
+url = '/Users/hanseopark/Work/stock/' # in data
 
 stats = input('Choice statement (PER, PBR, Trend, ML, Pre): ')
 if (stats == 'PER' or stats == "PBR"):
     strategy = LongTermStrategy(url, filename)
     s2 = input('Set {} point(10, 20, 30): '.format(stats))
     LimitValue = int(s2)
-elif (stats == 'ML'):
+    inputname= 'origin'
+elif (stats == 'ML' or 'Pre'):
     strategy = LongTermStrategy(url, filename)
+    subname = 'preprocessing'
 
-elif (stats == 'Pre'):
-    strategy = LongTermStrategy(url, filename)
+#elif (stats == 'Pre'):
+#    strategy = LongTermStrategy(url, filename)
 
 # Perform strategy and save
 if (stats == 'PER' or stats == 'PBR'):
-    url_threshold = '/Users/hanseopark/Work/stock/data_origin/table{0}_{1}_{2}.json'.format(stats, filename,LimitValue)
+    url_threshold = url+'/data_origin/table{0}_{1}_{2}.json'.format(stats, filename,LimitValue)
     if (stats == 'PER'):
         df_per = strategy.LowPER(threshold = LimitValue)
     elif (stats == 'PBR'):
@@ -123,29 +126,67 @@ if (stats == 'PER' or stats == 'PBR'):
     plt.show()
 
 elif (stats == 'Pre' or 'ML'):
-    # Price of stock
-    #url_price = url+'FS_{0}_Value.json'.format(filename)
-    df_price = strategy.get_price_data(etf_list=dow_list, OnlyRecent=True)
+    dow_list = strategy.get_ticker_list()
+    url_pre_price = url+'data_preprocessing/pre_{0}_Recent_price'.format(filename)
+    url_pre_stats = url+'data_preprocessing/pre_{0}_stats'.format(filename)
+    url_pre_addstats = url+'data_preprocessing/pre_{0}_addstats'.format(filename)
+    url_pre_balsheets = url+'data_preprocessing/pre_{0}_balsheets'.format(filename)
+    url_pre_income = url+'data_preprocessing/pre_{0}_income'.format(filename)
+    url_pre_flow = url+'data_preprocessing/pre_{0}_flow'.format(filename)
+    url_pre = url+'data_preprocessing/pre_{0}'.format(filename)
 
-    # Rearange dataframe for preprocessing
-    df_stats = strategy.get_stats_element(dow_list)
-    #print(df_stats)
+    if os.path.isfile(url_pre_price+'.csv'):
+        s = input('The preprocessing data is already exist. If you want to analyze agian? (Y/N): ')
+    else:
+        s = 'Y'
 
-    df_addstats = strategy.get_addstats_element(dow_list)
-    #print(df_addstats)
+    if s == 'yes' or s == 'Y' or s == 'Yes':
+        # Price of stock
+        #url_price = url+'FS_{0}_Value.json'.format(filename)
+        df_price = strategy.get_price_data(etf_list=dow_list, OnlyRecent=True)
+        df_price.to_json(url_pre_price+'.json')
+        df_price.to_csv(url_pre_price+'.csv')
 
-    df_balsheets = strategy.get_balsheets_element(dow_list)
-    #print(df_balsheets)
+        # Rearange dataframe for preprocessing
+        df_stats = strategy.get_stats_element(dow_list)
+        df_stats.to_json(url_pre_stats+'.json')
+        df_stats.to_csv(url_pre_stats+'.csv')
 
-    df_income = strategy.get_income_element(dow_list)
-    #print(df_income)
+        df_addstats = strategy.get_addstats_element(dow_list)
+        df_addstats.to_json(url_pre_addstats+'.json')
+        df_addstats.to_csv(url_pre_addstats+'.csv')
+        #print(df_addstats)
 
-    df_flow = strategy.get_flow_element(dow_list)
-    #print(df_flow)
+        df_balsheets = strategy.get_balsheets_element(dow_list)
+        df_balsheets.to_json(url_pre_balsheets+'.json')
+        df_balsheets.to_csv(url_pre_balsheets+'.csv')
+        #print(df_balsheets)
 
-    df = pd.concat([df_price, df_stats, df_addstats, df_balsheets, df_income, df_flow], axis=1)
-    df.dropna()
-    #print(df)
+        df_income = strategy.get_income_element(dow_list)
+        df_income.to_json(url_pre_income+'.json')
+        df_income.to_csv(url_pre_income+'.csv')
+        #print(df_income)
+
+        df_flow = strategy.get_flow_element(dow_list)
+        df_flow.to_json(url_pre_flow+'.json')
+        df_flow.to_csv(url_pre_flow+'.csv')
+        #print(df_flow)
+
+        df = pd.concat([df_price, df_stats, df_addstats, df_balsheets, df_income, df_flow], axis=1)
+        df.dropna()
+        #df.to_json(url_pre+'.json') # it has error
+        df.to_csv(url_pre+'.csv')
+        print(df)
+
+    else:
+        print('##################### Load Data .... ##############################')
+        df_price = pd.read_csv(url_pre_price+'.csv')
+        df_stats = pd.read_csv(url_pre_stats+'.csv')
+        df_addstats = pd.read_csv(url_pre_addstats+'.csv')
+        df_balsheets = pd.read_csv(url_pre_balsheets+'.csv')
+        df_income = pd.read_csv(url_pre_income+'.csv')
+        df_flow = pd.read_csv(url_pre_flow+'.csv')
+        df = pd.read_csv(url_pre+'.csv')
 
     if (stats == 'ML'):
         # Split data and test
@@ -153,7 +194,7 @@ elif (stats == 'Pre' or 'ML'):
 
         ## Correlation for features
         corrmat = train_df.corr()
-        top_corr_features = corrmat.index[abs(corrmat['Recent_price'])>0]
+        top_corr_features = corrmat.index[abs(corrmat['Recent_price'])>0.5]
 
         # Heatmap
         plt.figure(figsize=(12,8))

@@ -42,7 +42,7 @@ print('*'*100)
 print(dow_list)
 print('*'*100)
 
-url = '/Users/hanseopark/Work/stock/data_origin/' # in data
+url = '/Users/hanseopark/Work/stock/' # in data
 
 # Select strategy for situation
 LimitValue = 0
@@ -60,50 +60,56 @@ elif stats == 'ML':
     strategy = LongTermStrategy(url, filename) # Select Long term strategy
 
 # Perform strategy and save
-url_threshold = '/Users/hanseopark/Work/stock/data_origin/table{0}_{1}_{2}.json'.format(stats, filename,LimitValue)
+url_threshold = url+'/data_origin/table{0}_{1}_{2}'.format(stats, filename,LimitValue)
 if stats == 'PER':
     df_per = strategy.LowPER(threshold = LimitValue)
-    print(df_per)
-    df_per.to_json(url_threshold)
+    #print(df_per)
+    df_per.to_json(url_threshold+'.json')
+    df_per.to_csv(url_threshold+'.csv')
 
 elif stats == 'PBR':
     df_pbr = strategy.LowPBR(threshold = LimitValue)
-    print(df_pbr)
-    df_pbr.to_json(url_threshold)
+    #print(df_pbr)
+    df_pbr.to_json(url_threshold+'.json')
+    df_pbr.to_csv(url_threshold+'.csv')
 
 elif stats == 'Trend':
+    # Getting price
+    df_price = strategy.get_price_data(nomalization = True)
+    #print(df_price)
+
+    # Getting trend
     df_tr = strategy.get_trend_data()
-    url = '/Users/hanseopark/Work/stock/data_origin/Trend_{0}.json'.format(filename)
-    df_tr.to_json(url)
-    print(df_tr)
-#    df_price = strategy.get_price_data(nomalization = True)
-#    #print(df_price)
-#
-#    index = df_price.astype('str')
-#    fig = plt.figure(figsize=(10,10))
-#    ax_main = plt.subplot(1,1,1)
-#
-#    def x_date(x,pos):
-#        try:
-#            return index[int(x-0.5)][:7]
-#        except indexerror:
-#            return ''
-#
-#    # ax_main
-#    ax_main.xaxis.set_major_locator(ticker.maxnlocator(10))
-#    ax_main.xaxis.set_major_formatter(ticker.funcformatter(x_date))
-#    ax_main.set_title("Stock's value with google trend", fontsize=22 )
-#    #ax_main.plot(df_price['Adj Close'], label='ORLY')
-#    for tic in dow_list:
-#        ax_main.plot(df_tr[tic], label='Trend')
-#    ax_main.plot(df_price['Adj Close'], label="Stock's value")
-#    ax_main.legend(loc=2)
-#
-#    plt.grid()
-#    plt.show()
+    url_trend = url+'/data_origin/Trend_{0}'.format(filename)
+    df_tr.to_json(url_trend+'.json')
+    df_tr.to_csv(url_trend+'.csv')
+    #print(df_tr)
+
+    index = df_price.astype('str')
+    fig = plt.figure(figsize=(10,10))
+    ax_main = plt.subplot(1,1,1)
+
+    def x_date(x,pos):
+        try:
+            return index[int(x-0.5)][:7]
+        except indexerror:
+            return ''
+
+    # ax_main
+    ax_main.xaxis.set_major_locator(ticker.maxnlocator(10))
+    ax_main.xaxis.set_major_formatter(ticker.funcformatter(x_date))
+    ax_main.set_title("Stock's value with google trend", fontsize=22 )
+    #ax_main.plot(df_price['Adj Close'], label='ORLY')
+    for tic in dow_list:
+        ax_main.plot(df_tr[tic], label='Trend')
+    ax_main.plot(df_price['Adj Close'], label="Stock's value")
+    ax_main.legend(loc=2)
+
+    plt.grid()
+    plt.show()
 
 elif stats == 'ML':
-    url = '/Users/hanseopark/Work/stock/data_origin'
+    url = '/Users/hanseopark/Work/stock'
 
     # data preprosseing from class
         ## price of stock
