@@ -549,11 +549,11 @@ class BasicStatement:
         self.yfticker = yf.Ticker(ticker)
 
     def Calculate_Beta(self):
-        symbol_list = [self.ticker,'SPY']
+        symbol_list = [self.ticker,'^IXIC']
         df = yf.download(symbol_list, self.start_day)['Adj Close']
         price_change = df.pct_change()
         df_ForBeta = price_change.drop(price_change.index[0])
-        x = np.array(df_ForBeta['SPY']).reshape([-1,1])
+        x = np.array(df_ForBeta['^IXIC']).reshape([-1,1])
         y = np.array(df_ForBeta[self.ticker])
         model = LinearRegression().fit(x, y)
 

@@ -3,8 +3,8 @@ import pandas as pd
 
 from class_Strategy import ShortTermStrategy
 
-#td_1y = datetime.timedelta(weeks=52/2)
-td_1y = datetime.timedelta(weeks=4)
+td_1y = datetime.timedelta(weeks=52)
+#td_1y = datetime.timedelta(weeks=4)
 today = datetime.datetime.now()
 start_day = today - td_1y
 
