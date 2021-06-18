@@ -19,11 +19,13 @@ today = datetime.datetime.now()
 start_day = today - td_1y
 
 # To test just a ticker for making class
-symbol = input('Write ticker name like aapl: ')
+symbol = input('Write ticker name like AAPL: ')
+url_data = '/Users/hanseopark/Work/stock/data_origin/'
 
-stock = Stocks(symbol, start_day, today)
+offline_test = True #False
+stock = Stocks(symbol, start_day, today, url=url_data, Offline= offline_test)
 
-# For figure
+## For figure
 df = stock.with_moving_ave()
 index = df.index.astype('str')
 fig = plt.figure(figsize=(10,10))
@@ -68,11 +70,6 @@ ax_1.hlines(y=mean, xmin=index[0], xmax=index[-1], colors='red')
 plt.grid()
 plt.show()
 
-#symbol = ['SPY', 'QQQ', 'IWD', 'GLD', 'SHY', 'IEF']
-
-url = 'https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv'
-
-df_sp500 = pd.read_csv(url)
 
 
 
