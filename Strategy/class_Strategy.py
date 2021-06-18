@@ -10,13 +10,26 @@ from sklearn.linear_model import LinearRegression
 
 class ShortTermStrategy:
 
-    def __init__(self, symbol, start_day, end_day):
+    def __init__(self, symbol, start_day, end_day, url = '', Offline=False):
         self.symbol = symbol
         self.start_day = start_day
         self.end_day = end_day
+        self.url = url
+        self.Offline = Offline
 
     def get_price_data(self):
-        df_price = pdr.DataReader(self.symbol, 'yahoo',self. start_day, self.end_day)
+        if (self.Offline == True):
+            url_price = self.url+'/FS_{0}_Value.json'.format('sp500') # If you have nasdaq stocks, you'd like to choose nasdaq stocks rather than sp500 or dow to have many data sets
+            combined_price = pd.read_json(url_price)
+            df = combined_price[combined_price.Ticker.str.contains(self.symbol)]
+            df_price = df.copy()
+            df_price = df_price.set_index('Date')
+            df_price = df_price.drop(['Ticker'], axis=1)
+            df_price = df_price.loc[self.start_day : self.end_day]
+
+        else:
+            df_price = pdr.DataReader(self.symbol, 'yahoo',self. start_day, self.end_day)
+
         return df_price
 
     def DayTrading(self, df, df_init, df_end, calendar, capital, day):
