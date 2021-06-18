@@ -15,3 +15,8 @@ It is exolained how to choose ticker in condition like PER and PBR
 
 ### CombineDataFrame
 It is combined from dataframe calculated by strategy
+
+### Dashboard
+If you want to see the visulizaion of data using streamlit, you have to get the token key of API.
+
+$ streamlit run dashbord.py
