@@ -14,10 +14,10 @@ df_price = strategy.get_price_data()
 real_val = (df_price.loc[df_price.index[-1],'Adj Close'] - df_price.loc[df_price.index[0], 'Adj Close'])/df_price.loc[df_price.index[-1], 'Adj Close']*100
 
 c = 10000
-list_strategy = ['BolingerBand', 'RSI', 'DayTrading']
+list_strategy = ['BolingerBand', 'RSI', 'DayTrading', 'WeekTrading']
 for s in list_strategy:
     NameStrategy = s
-    res = strategy.Backtest(capital = c, name_strategy = NameStrategy, day=1)
+    res = strategy.Backtest(capital = c, name_strategy = NameStrategy)
 
     print('*'*100)
     print('{}'.format(s))

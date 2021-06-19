@@ -32,29 +32,28 @@ class ShortTermStrategy:
 
         return df_price
 
-    def DayTrading(self, df, df_init, df_end, calendar, capital, day):
+    def DayTrading(self, df, df_init, df_end, calendar, capital, day, upper_limit = 0.025, down_limit= -0.05):
         portval = 0
         for date in calendar[::day]:
-            prev_date = df_init.index[df_init.index<date][-1]
+            prev_date = df_init.index[df_init.index<date][-day]
             df_init.loc[date, :] = df_end.loc[prev_date, :]
             port_value = df_init.loc[date, 'Adj Close'] * df.loc[date, 'Adj Close'] + df_init.loc[date, 'cash']
 
             prev_value = float(df.loc[prev_date, 'Close'])
             value  = float(df.loc[date, 'Close'])
 
-            dist = (value-prev_value)/value
-            if dist >0.025:
+            disc = (value-prev_value)/value
+            if disc >upper_limit:
                 df_end.loc[date, 'Adj Close'] = 0
                 df_end.loc[date, 'cash'] = port_value
-            #elif dist < -0.015:
-            elif dist < -0.05:
+            elif disc < down_limit:
                 df_end.loc[date, 'Adj Close'] = 0
                 df_end.loc[date, 'cash'] = port_value
             else:
                 df_end.loc[date, 'Adj Close'] = port_value/df.loc[date, 'Adj Close']
                 df_end.loc[date,'cash'] =0
 
-            #print(prev_value, value, dist)
+            #print(prev_value, value, disc)
             #print(df.loc[date, 'Adj Close'],df_end.loc[date, 'Adj Close'], port_value)
             portval = port_value
 
@@ -161,7 +160,7 @@ class ShortTermStrategy:
 
         return portval
 
-    def Backtest(self, capital= 10000, name_strategy='', day = 1):
+    def Backtest(self, capital= 10000, name_strategy=''):
         if name_strategy == 'BolingerBand':
             df_origin = self.with_moving_ave()
 
@@ -188,7 +187,11 @@ class ShortTermStrategy:
 
             return (self.RSI(df_origin, df_init, df_end, calendar, capital)-capital)/capital*100
 
-        if name_strategy == 'DayTrading':
+        if name_strategy == 'DayTrading' or name_strategy == 'WeekTrading':
+            if name_strategy == 'DayTrading':
+                days_step = 1
+            elif name_strategy == 'WeekTrading':
+                days_step = 5
             df_origin = self.get_price_data()
 
             df_init = (df_origin*0).assign(cash = 0)
@@ -197,9 +200,11 @@ class ShortTermStrategy:
             df_init.iloc[0, df_init.columns.get_loc('cash')] = capital
             df_end.iloc[0, df_end.columns.get_loc('cash')] = capital
 
-            calendar = pd.Series(df_origin.index).iloc[1:]
+            calendar = pd.Series(df_origin.index).iloc[days_step:]
 
-            return (self.DayTrading(df_origin, df_init, df_end, calendar, capital, day)-capital)/capital*100
+            return (self.DayTrading(df_origin, df_init, df_end, calendar, capital, day=days_step)-capital)/capital*100
+
+        return 0
 
 class LongTermStrategy:
     def __init__(self, url, etfname):
@@ -574,11 +579,3 @@ class BasicStatement:
 
 class AdvancedStratedy:
     pass
-
-
-
-
-
-
-
-
