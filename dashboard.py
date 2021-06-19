@@ -10,9 +10,11 @@ import seaborn as sns
 
 from sklearn.linear_model import LinearRegression
 from datetime import datetime, timedelta
+
 from iex import IEXStocks
 from iex import YahooStocks
-from PIL import Image
+from Strategy.class_Strategy import ShortTermStrategy
+from Strategy.class_Strategy import LongTermStrategy
 
 ## Setting ##
 st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -20,7 +22,6 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 symbol = st.sidebar.text_input("Symbol", value="AAPL")
 day = st.sidebar.text_input('Day', value='2010-1-1')
 symbol_list = ['^IXIC', symbol]
-# symbol_list = ['AFL', 'BOP', 'GLD', 'SHY', 'IEF', 'AAPL']
 
 #############################################################
 # Time #
@@ -28,7 +29,7 @@ symbol_list = ['^IXIC', symbol]
 # start_day = datetime(2020,4,1)
 start_day = day
 end_day = datetime(2020,1,1)
-now_day = datetime.today()
+now_day = datetime.now()
 
 #############################################################
 # For using API from IEX ,YahooFinance and mine
@@ -44,68 +45,55 @@ stock_IEX = IEXStocks(TOKEN_KEY, symbol)
 stock_Yahoo = YahooStocks(symbol_list, start_day, now_day)
 #############################################################
 
-screen = st.sidebar.selectbox("view", ('Overview', 'Fundamentals', 'News', 'Ownership', 'Technicals', 'Test'))
+screen = st.sidebar.selectbox("view", ('Overview', 'Short Term Strategy','Long Term Strategy' ,'Fundamentals', 'News', 'Ownership', 'Technicals', 'Test'))
 
 st.title(screen)
 
 if screen == 'Overview':
+    strategy_short = ShortTermStrategy(symbol, start_day, now_day)
     #logo = stock_IEX.get_logo()
-    df = yf.download(symbol_list, start_day)['Adj Close']
-    info = yf.Ticker(symbol).info
-    df_quote = pdr.get_quote_yahoo(symbol)
+
+    df_price = strategy_short.get_price_data()
+    df_info = yf.Ticker(symbol).info
 
 
     # For Beta using linear modeling
-    price_change = df.pct_change() # Percentage Change Calculator
-    df_ForBeta = price_change.drop(price_change.index[0])
-    x = np.array(df_ForBeta['^IXIC']).reshape([-1,1])
-    y = np.array(df_ForBeta[symbol])
-    model = LinearRegression().fit(x, y)
+#    price_change = df_price.pct_change() # Percentage Change Calculator
+#    df_ForBeta = price_change.drop(price_change.index[0])
+#    x = np.array(df_ForBeta['^IXIC']).reshape([-1,1])
+#    y = np.array(df_ForBeta[symbol])
+#    model = LinearRegression().fit(x, y)
 
     col1, col2 = st.beta_columns(2)
     with col1:
         #st.image(logo)
-        st.subheader('Adj Close')
-        st.line_chart(df)
-        st.text_input('Beta:', model.coef_)
-        st.text_input('Beta from quote: ', info['beta'])
-        st.text_input('PER: ', df_quote['trailingPE'])
-        st.text_input('PBR: ', df_quote['priceToBook'])
-
-        st.line_chart(df_ForBeta)
-        fig = sns.relplot(x=symbol, y='SPY', data=df_ForBeta)
-        fig.ax.axline(xy1=(0.01,0.01), slope=1, color='b')
-        st.pyplot()
-        # st.write(df)
-        # st.write(df['Adj Close'])
-        # st.write(df_quote)
-        # st.write(df_quote['priceToBook'])
-        # st.write(info)
-        # st.write(info['sector'])
-        # st.write(df_quote)
-        # st.write(df_ticker.astype('object'))
-        # st.write(Ticker)
-        # st.write(logo['url'])
-        # st.write(info['logo_url'])
-        # print(start_day)
-        # print(r.info)
-        # hist = r.history(period='5d')
-        # st.image(logo['url'])
+        st.subheader("{0}'s Price".format(symbol))
+        st.line_chart(df_price['Adj Close'])
+        st.subheader('Industry')
+        st.write(df_info['industry'])
 
     with col2:
         st.subheader('Description')
-        st.write(info['longBusinessSummary'])
-        # print(end_day)
-        # st.subheader(company_info['companyName'])
-        # st.subheader('Description')
-        # st.write(company_info['description'])
-        # st.subheader('Industry')
-        # st.write(company_info['industry'])
-        # st.subheader('CEO')
-        # st.write(company_info['CEO'])
+        st.write(df_info['longBusinessSummary'])
 
-if screen == 'Strategy':
+from Strategy.PlotStrategy import main as splt
+if screen == 'Short Term Strategy':
+    strategy = ShortTermStrategy(symbol, start_day, now_day)
+    st.subheader('Bonliner Band: ')
+    fig_BB = splt(symbol, offline_test=False, SelectStrategy = 'BB', day_init = start_day, today = now_day)
+    st.pyplot(fig_BB)
+    st.subheader('RSI: ')
+    fig_RSI = splt(symbol, offline_test=False, SelectStrategy = 'RSI', day_init = start_day, today = now_day)
+    st.pyplot(fig_RSI)
+
+if screen == 'Long Term Strategy':
     pass
+    strategy = LongTermStrategy(symbol, start_day, now_day)
+
+
+
+
+
 
 if screen == 'Fundamentals':
     pass
