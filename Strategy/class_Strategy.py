@@ -207,9 +207,10 @@ class ShortTermStrategy:
         return 0
 
 class LongTermStrategy:
-    def __init__(self, url, etfname):
+    def __init__(self, url, etfname, Offline = False):
         self.url = url
         self.etfname = etfname
+        self.Offline = Offline
 
     def get_ticker_list(self):
         df = self.get_stats()
