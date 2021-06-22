@@ -20,6 +20,7 @@ from Strategy.class_Strategy import LongTermStrategy
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 symbol = st.sidebar.text_input("Symbol", value="AAPL")
+etf_list = st.sidebar.text_input("Index", value="dow")
 day = st.sidebar.text_input('Day', value='2010-1-1')
 symbol_list = ['^IXIC', symbol]
 
@@ -76,8 +77,8 @@ if screen == 'Overview':
         st.subheader('Description')
         st.write(df_info['longBusinessSummary'])
 
-from Strategy.PlotStrategy import main as splt
 if screen == 'Short Term Strategy':
+    from Strategy.PlotStrategy import main as splt
     strategy = ShortTermStrategy(symbol, start_day, now_day)
     st.subheader('Bonliner Band: ')
     fig_BB = splt(symbol, offline_test=False, SelectStrategy = 'BB', day_init = start_day, today = now_day)
@@ -87,13 +88,19 @@ if screen == 'Short Term Strategy':
     st.pyplot(fig_RSI)
 
 if screen == 'Long Term Strategy':
-    pass
-    strategy = LongTermStrategy(symbol, start_day, now_day)
+    from Strategy.runStrategy import main as srun
+    st.subheader(etf_list)
+    st.subheader('Low PER: ')
+    df_lowper = srun(stock_list=etf_list, stats='PER', Limit = 20)
+    st.write(df_lowper)
 
+    st.subheader('Low PBR: ')
+    df_lowpbr = srun(stock_list=etf_list, stats='PBR', Limit = 20)
+    st.write(df_lowpbr)
 
-
-
-
+    st.subheader('ML: ')
+    df_pred = srun(stock_list=etf_list, stats='ML')
+    st.write(df_pred)
 
 if screen == 'Fundamentals':
     pass

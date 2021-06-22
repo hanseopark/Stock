@@ -8,9 +8,8 @@ import seaborn as sns
 
 import json
 import datetime
-from class_Strategy import LongTermStrategy, TrendStrategy
 
-def main(stock_list=['dow'], stats = 'PER'):
+def main(stock_list=['dow'], stats = 'PER', Limit = 10):
     # Get datetime for price of stock
     td_1y = datetime.timedelta(weeks=52/2)
     #td_1y = datetime.timedelta(weeks=52*3)
@@ -46,11 +45,8 @@ def main(stock_list=['dow'], stats = 'PER'):
     url = '/Users/hanseopark/Work/stock/' # in data
 
     # Select strategy for situation
-    LimitValue = 0
     if (stats == 'PER' or stats == "PBR"):
         strategy = LongTermStrategy(url, filename) # Select Long term strategy
-        s2 = input('Set {} point(10, 20, 30): '.format(stats))
-        LimitValue = int(s2)
     elif stats == 'Trend':
         #symbol = input('Write ticker name like aapl: ')
         #dow_list = [symbol]
@@ -60,18 +56,22 @@ def main(stock_list=['dow'], stats = 'PER'):
         strategy = LongTermStrategy(url, filename) # Select Long term strategy
 
     # Perform strategy and save
-    url_threshold = url+'/data_origin/table{0}_{1}_{2}'.format(stats, filename,LimitValue)
+    url_threshold = url+'/data_origin/table{0}_{1}_{2}'.format(stats, filename,Limit)
     if stats == 'PER':
-        df_per = strategy.LowPER(threshold = LimitValue)
+        df_per = strategy.LowPER(threshold = Limit)
         #print(df_per)
         df_per.to_json(url_threshold+'.json')
         df_per.to_csv(url_threshold+'.csv')
 
+        return df_per
+
     elif stats == 'PBR':
-        df_pbr = strategy.LowPBR(threshold = LimitValue)
+        df_pbr = strategy.LowPBR(threshold = Limit)
         #print(df_pbr)
         df_pbr.to_json(url_threshold+'.json')
         df_pbr.to_csv(url_threshold+'.csv')
+
+        return df_pbr
 
     elif stats == 'Trend':
         # Getting price
@@ -236,6 +236,7 @@ def main(stock_list=['dow'], stats = 'PER'):
             sub = sub.set_index('Ticker')
             sub_new = pd.concat([sub, y_test], axis=1)
             print(sub)
+            return sub
 
         else:
             df_stats = strategy.get_stats_element(dow_list)
@@ -280,12 +281,22 @@ def main(stock_list=['dow'], stats = 'PER'):
 
 
 if __name__ == '__main__':
+    from class_Strategy import LongTermStrategy, TrendStrategy
     s_list= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
     statements = input('Choice statement (PER, PBR, Trend, ML): ')
-    main(stock_list=s_list, stats=statements)
+    if (statements == 'PER' or statements == "PBR"):
+        s2 = input('Set {} point(10, 20, 30): '.format(statements))
+        LimitValue = int(s2)
+    else:
+        LimitValue = 10
+
+    main(stock_list=s_list, stats=statements, Limit=LimitValue)
 
 else:
-    pass
+    from Strategy.class_Strategy import LongTermStrategy, TrendStrategy
+#    s_list= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
+#    statements = input('Choice statement (PER, PBR, Trend, ML): ')
+#    main(stock_list=s_list, stats=statements)
 
 
 

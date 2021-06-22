@@ -356,14 +356,12 @@ class LongTermStrategy:
         df_forper['forPER'] = df_forper.loc[:, 'Recent']
         df_forper = df_forper.drop(['Attribute', 'Recent'], axis=1)
         df_forper = df_forper.set_index('Ticker')
-#        df_forper = df_forper.fillna(value=np.nan)
-#        for ticker in df_forper.index:
-#            value = df_forper.loc[ticker, 'forPER']
-#            if type(value) == str:
-#                value = float(value[:-1])
-#            df_forper.loc[ticker, 'forPER'] = value
+        df_forper = df_forper.fillna(value=np.nan)
+        df_temp = pd.DataFrame()
+        for col in df_forper.columns:
+            df_temp[col] = pd.to_numeric(df_forper[col], errors='coerce')
 
-        return df_forper.astype(float)
+        return df_temp
 
     ## For addstats
     def get_addstats_element(self, etf_list =['AAPL']):
@@ -396,8 +394,7 @@ class LongTermStrategy:
                 value = float(value[:-1].replace(',',''))
             df_roe.loc[ticker, 'ROE(%)'] = value
 
-        #return df_roe.astype(float)
-        return df_roe
+        return df_roe.astype(float)
 
     def get_ROA(self):
         df = self.get_addstats()
