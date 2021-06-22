@@ -317,47 +317,53 @@ class LongTermStrategy:
     def get_PER(self):
         df = self.get_stats()
         df_per = df[df.Attribute.str.contains('Trailing P/E')].copy()
-        df_per['PER'] = df_per.loc[:, 'Recent'].astype(float)
+        df_per['PER'] = df_per.loc[:, 'Recent']
         df_per = df_per.drop(['Attribute', 'Recent'], axis=1)
         df_per = df_per.set_index('Ticker')
 
-        return df_per
+        return df_per.astype(float)
 
     def get_PSR(self):
         df = self.get_stats()
         df_psr = df[df.Attribute.str.contains('Price/Sales')].copy()
-        df_psr['PSR'] = df_psr.loc[:, 'Recent'].astype(float)
+        df_psr['PSR'] = df_psr.loc[:, 'Recent']
         df_psr = df_psr.drop(['Attribute', 'Recent'], axis=1)
         df_psr = df_psr.set_index('Ticker')
 
-        return df_psr
+        return df_psr.astype(float)
 
     def get_PBR(self):
         df = self.get_stats()
         df_pbr = df[df.Attribute.str.contains('Price/Book')].copy()
-        df_pbr['PBR'] = df_pbr.loc[:, 'Recent'].astype(float)
+        df_pbr['PBR'] = df_pbr.loc[:, 'Recent']
         df_pbr = df_pbr.drop(['Attribute', 'Recent'], axis=1)
         df_pbr = df_pbr.set_index('Ticker')
 
-        return df_pbr
+        return df_pbr.astype(float)
 
     def get_PEG(self):
         df = self.get_stats()
         df_peg = df[df.Attribute.str.contains('PEG')].copy()
-        df_peg['PEG'] = df_peg.loc[:, 'Recent'].astype(float)
+        df_peg['PEG'] = df_peg.loc[:, 'Recent']
         df_peg = df_peg.drop(['Attribute', 'Recent'], axis=1)
         df_peg = df_peg.set_index('Ticker')
 
-        return df_peg
+        return df_peg.astype(float)
 
     def get_FORPER(self):
         df = self.get_stats()
         df_forper = df[df.Attribute.str.contains('Forward P/E')].copy()
-        df_forper['forPER'] = df_forper.loc[:, 'Recent'].astype(float)
+        df_forper['forPER'] = df_forper.loc[:, 'Recent']
         df_forper = df_forper.drop(['Attribute', 'Recent'], axis=1)
         df_forper = df_forper.set_index('Ticker')
+#        df_forper = df_forper.fillna(value=np.nan)
+#        for ticker in df_forper.index:
+#            value = df_forper.loc[ticker, 'forPER']
+#            if type(value) == str:
+#                value = float(value[:-1])
+#            df_forper.loc[ticker, 'forPER'] = value
 
-        return df_forper
+        return df_forper.astype(float)
 
     ## For addstats
     def get_addstats_element(self, etf_list =['AAPL']):
@@ -380,29 +386,48 @@ class LongTermStrategy:
     def get_ROE(self):
         df = self.get_addstats()
         df_roe = df[df.Attribute.str.contains('Return on Equity')].copy()
-        df_roe['ROE'] = df_roe.loc[:, 'Value']
+        df_roe['ROE(%)'] = df_roe.loc[:, 'Value']
         df_roe = df_roe.drop(['Attribute', 'Value'], axis=1)
         df_roe = df_roe.set_index('Ticker')
+        df_roe = df_roe.fillna(value=np.nan)
+        for ticker in df_roe.index:
+            value = df_roe.loc[ticker, 'ROE(%)']
+            if type(value) == str:
+                value = float(value[:-1].replace(',',''))
+            df_roe.loc[ticker, 'ROE(%)'] = value
 
+        #return df_roe.astype(float)
         return df_roe
 
     def get_ROA(self):
         df = self.get_addstats()
         df_roa = df[df.Attribute.str.contains('Return on Assets')].copy()
-        df_roa['ROA'] = df_roa.loc[:, 'Value']
+        df_roa['ROA(%)'] = df_roa.loc[:, 'Value']
         df_roa = df_roa.drop(['Attribute', 'Value'], axis=1)
         df_roa = df_roa.set_index('Ticker')
+        df_roa = df_roa.fillna(value=np.nan)
+        for ticker in df_roa.index:
+            value = df_roa.loc[ticker, 'ROA(%)']
+            if type(value) == str:
+                value = float(value[:-1])
+            df_roa.loc[ticker, 'ROA(%)'] = value
 
-        return df_roa
+        return df_roa.astype(float)
 
     def get_PM(self):
         df = self.get_addstats()
-        df_pm = df[df.Attribute.str.contains('Return on Assets')].copy()
-        df_pm['ProfitMargin'] = df_pm.loc[:, 'Value']
+        df_pm = df[df.Attribute.str.contains('Profit Margin')].copy()
+        df_pm['ProfitMargin(%)'] = df_pm.loc[:, 'Value']
         df_pm = df_pm.drop(['Attribute', 'Value'], axis=1)
         df_pm = df_pm.set_index('Ticker')
+        df_pm = df_pm.fillna(value=np.nan)
+        for ticker in df_pm.index:
+            value = df_pm.loc[ticker, 'ProfitMargin(%)']
+            if type(value) == str:
+                value = float(value[:-1])
+            df_pm.loc[ticker, 'ProfitMargin(%)'] = value
 
-        return df_pm
+        return df_pm.astype(float)
 
     ## For balance sheets
 

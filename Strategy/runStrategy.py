@@ -4,6 +4,7 @@ import pandas_datareader as pdr
 import yfinance as yf
 import yahoo_fin.stock_info as yfs
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 import json
 import datetime
@@ -109,16 +110,9 @@ def main(stock_list=['dow'], stats = 'PER'):
 
     elif stats == 'ML':
         url = '/Users/hanseopark/Work/stock'
-
-        # data preprosseing from class
-            ## price of stock
-#        df_price = pd.DataFrame({'Recent_price': []})
-#        for ticker in dow_list:
-#            price = strategy.get_price_data(ticker, OnlyRecent=True)
-#            df_price.loc[ticker, 'Recent_price'] = price
         df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
+        SpecialStatements = True
 
-        SpecialStatements = False
         if SpecialStatements == True:
             ## Financial statement of stock
             df_stats = strategy.get_stats(preprocessing=True)
@@ -127,15 +121,122 @@ def main(stock_list=['dow'], stats = 'PER'):
             df_income = strategy.get_income(True)
             df_flow = strategy.get_flow(True)
 
-            print(df_price)
-            print(df_stats)
-            print(df_addstats)
-            print(df_balsheets)
-            print(df_income)
-            print(df_flow)
+#            print(df_price)
+#            print(df_stats)
+#            print(df_addstats)
+#            print(df_balsheets)
+#            print(df_income)
+#            print(df_flow)
 
             df = pd.concat([df_stats, df_addstats, df_balsheets, df_income, df_flow, df_price], axis=1)
-            #print(df)
+            print(df)
+            from pandas.api.types import is_numeric_dtype
+            num_cols = [is_numeric_dtype(dtype) for dtype in df.dtypes]
+            print(num_cols)
+
+            # Split data and test For correlation
+            from sklearn.model_selection import train_test_split
+            train_df_corr, test_df_corr = train_test_split(df, test_size=0.2)
+
+            # Correlation for features
+            corrmat = train_df_corr.corr()
+            top_corr_features = corrmat.index[abs(corrmat['Recent_price'])>0]
+            print(top_corr_features)
+
+            print(corrmat['Recent_price'].sort_values(ascending=False))
+
+            # Heatmap
+            plt.figure(figsize=(13,10))
+            plt_corr = sns.heatmap(train_df_corr[top_corr_features].corr(), annot=True)
+
+            plt.show()
+
+            # Split target
+#            train_y_label = train_df['Recent_price']
+#            train_df = train_df.drop(['Recent_price'], axis=1, inplace=True)
+
+            # How to considef NaN data
+            # We need how to take the NaN data. First of all, we remove the NaN column over ratio of 0.5.
+            nulltotal = df.isnull().sum().sort_values(ascending=False)
+            nullpercent = ( df.isnull().sum() / len(df) ).sort_values(ascending=False)
+            nullpoint = pd.concat([nulltotal, nullpercent], axis=1, keys=['Total number of null', 'Percent of null'])
+            print(nullpoint)
+
+            remove_cols = nullpercent[nullpercent >= 0.5].keys()
+            df = df.drop(remove_cols, axis=1)
+            print(df.isnull().sum().max())
+            newtotal = df.isnull().sum().sort_values(ascending=False)
+            print(newtotal)
+
+            # filling the numeric data
+            numeric_missed = ['Issuance', 'PER', 'ROE(%)', 'PBR', 'DividendsPaid']
+            for feature in numeric_missed:
+                df[feature] = df[feature].fillna(0)
+
+            print('Re check')
+            print(df.isnull().sum().max())
+
+
+            ## Feature Engineering
+            from scipy.stats import norm, skew
+            numeric_feats = df.dtypes[df.dtypes != 'object'].index
+            skewed_feats = df[numeric_feats].apply(lambda x: skew(x)).sort_values(ascending=False)
+            high_skew = skewed_feats[abs(skewed_feats) > 0.5]
+            print(high_skew)
+
+            for feature in high_skew.index:
+                df[feature] = np.log1p(df[feature]-df[feature].min()+1)
+
+            # Split train and test for ML
+#            y_df = df['Recent_price']
+#            x_df = df.drop(['Recent_price'], axis=1 , inplace=True)
+#            y_train, y_test, x_train, x_test = train_test_split(y_df, x_df, test_size=0.2)
+#            print(y_train, y_test, x_train, x_test)
+
+            train_df, test_df = train_test_split(df, test_size=0.2)
+            y_train = train_df['Recent_price']
+            x_train = train_df.iloc[:, :-1]
+            y_test = test_df['Recent_price']
+            x_test = test_df.iloc[:, :-1]
+            test_index = x_test.index
+
+            # Apply ML Model
+#            from sklearn.metrics import make_scorer
+#            from sklearn.model_selection import KFold, cross_val_score
+#            from sklearn.metrics import mean_squared_error
+#
+#            scorer = make_scorer(mean_squared_error, greater_is_better = False)
+#            def rmse_CV_train(model):
+#                kf = KFold(5,shuffle=True,random_state=42).get_n_splits(x_train.values)
+#                rmse = np.sqrt(-cross_val_score(model, x_train, y_train,scoring ="neg_mean_squared_error",cv=kf))
+#                return (rmse)
+#
+#            def rmse_CV_test(model):
+#                kf = KFold(5,shuffle=True,random_state=42).get_n_splits(train.values)
+#                rmse = np.sqrt(-cross_val_score(model, x_test, y_test,scoring ="neg_mean_squared_error",cv=kf))
+#                return (rmse)
+
+            import xgboost as XGB
+
+            the_model = XGB.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468,
+                                        learning_rate=0.05, max_depth=3,
+                                        min_child_weight=1.7817, n_estimators=2200,
+                                        reg_alpha=0.4640, reg_lambda=0.8571,
+                                        subsample=0.5213, random_state =7, nthread = -1)
+            the_model.fit(x_train, y_train)
+            y_pred = the_model.predict(x_test)
+            print('Predction: ', y_pred)
+            y_predict = np.floor(np.expm1(the_model.predict(x_test)))
+            print('Prediction: ', y_predict)
+
+            print(y_test)
+            sub = pd.DataFrame()
+            sub['Ticker'] = test_index
+            sub['Price of Prediction'] = y_predict
+            sub = sub.set_index('Ticker')
+            sub_new = pd.concat([sub, y_test], axis=1)
+            print(sub)
+
         else:
             df_stats = strategy.get_stats_element(dow_list)
             df_addstats = strategy.get_addstats_element(dow_list)
@@ -145,9 +246,38 @@ def main(stock_list=['dow'], stats = 'PER'):
             df = pd.concat([df_stats, df_addstats, df_balsheets, df_income, df_flow, df_price], axis=1)
             print(df)
 
-            from sklearn.model_selection import train_test_split
-            train_df, test_df = train_test_split(df, test_size=0.2)
-            #train_df.head(5), test_df.head(5)
+            print(df.dtypes)
+            from pandas.api.types import is_numeric_dtype
+            num_cols = [is_numeric_dtype(dtype) for dtype in df.dtypes]
+            print(num_cols)
+
+#            for _ in df.columns:
+#                print(df[_].type)
+
+#            # Split
+#            from sklearn.model_selection import train_test_split
+#            train_x, val_x, train_y, val_y = train_test_split(df, df_price, test_size=0.2)
+#            #train_df.head(5), test_df.head(5)
+#
+#            # Scaling
+#            from mlxtend.preprocessing import minmax_scaling
+#            x_scaled =minmax_scaling(df, columns=df.columns)
+#
+#            train_xs, val_xs, trains_ys, val_ys = train_test_split(x_scaled, df_prcie, test_size=0.2)
+#
+#            # Features
+#            yf = df_price.Recent_price
+#            xf = df
+#
+#            # Label encoding for categoricals
+#            for colname in xf.select_dtype("object"):
+#                xf[colname], _ = xf[colname].factorize()
+#
+#            # All discrete features should now have integer dtypes (double-check this before using MI!)
+#            discrete_features = xf.dtypes == int
+
+
+
 
 if __name__ == '__main__':
     s_list= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
