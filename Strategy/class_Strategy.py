@@ -2,10 +2,14 @@ import numpy as np
 import pandas as pd
 import pandas_datareader as pdr
 import yfinance as yf
+import yahoo_fin.stock_info as yfs
 
 import json
+import requests
+from datetime import datetime, timedelta
 from tqdm import tqdm
 from pytrends.request import TrendReq
+from pytrends import dailydata
 from sklearn.linear_model import LinearRegression
 
 class ShortTermStrategy:
@@ -225,12 +229,20 @@ class LongTermStrategy:
         df_price = pd.DataFrame({'Recent_price': []})
 
         if OnlyRecent == True:
-            print('For Price')
-            for symbol in tqdm(self.etf_list):
-                temp_df = combined_price[combined_price.Ticker.str.contains(symbol)].copy()
-                res = temp_df.loc[temp_df.index[-1], 'Adj Close']
-                df_price.loc[symbol, 'Recent_price'] =res
-            return df_price
+            if self.Offline == True:
+                print('Recent price by offline datasets')
+                for symbol in tqdm(self.etf_list):
+                    temp_df = combined_price[combined_price.Ticker.str.contains(symbol)].copy()
+                    res = temp_df.loc[temp_df.index[-1], 'Adj Close']
+                    df_price.loc[symbol, 'Recent_price'] =res
+                return df_price
+
+            else:
+                print('LIVE Recent price')
+                for symbol in tqdm(self.etf_list):
+                    df_price.loc[symbol, 'Recent_price'] = yfs.get_live_price(symbol)
+                return df_price
+
         else:
             df_price = combined_price.copy()
             return df_price
@@ -548,38 +560,54 @@ class LongTermStrategy:
 
 
 class TrendStrategy:
-    def __init__(self, symbol, start_day, end_day, keywords):
+    def __init__(self, symbol, index, start, end, keywords):
         self.symbol = symbol
-        self.start_day = start_day
-        self.end_day = end_day
+        self.start = start
+        self.end = end
         self.keywords = keywords
+        self.index = index
 
-    def get_price_data(self, nomalization = False):
-        df_price = pdr.DataReader(self.symbol, 'yahoo',self.start_day, self.end_day)
-        if nomalization == True:
-            df_price =df_price/df_price.max()
-        return df_price
+    def get_price_data(self, nomalization = False, DoSymbol = False):
+        if DoSymbol == True:
+            df_price = pdr.DataReader(self.symbol, 'yahoo',self.start, self.end)
+            if nomalization == True:
+                df_price['Adj Close'] =df_price['Adj Close']/df_price['Adj Close'].max()
+            return df_price['Adj Close']
+        else:
+            df_price = pdr.DataReader(self.index, 'yahoo',self.start, self.end)
+            if nomalization == True:
+                df_price =df_price/df_price.max()
+            return df_price
 
-    def get_trend_data(self):
+    def get_trend_data(self, DoSymbol = False):
         # it is needed for me to download rating each stock as daily comparing stock's price
-        pytrend = TrendReq(hl='en-US', tz=360) # this package is unoffical
-        #pytrends = TrendReq(hl='en-US', tz=360, timeout=(10,25), proxies=['https://34.203.233.13:80',], retries=2, backoff_factor=0.1, requests_args={'verify':False})
-        #pytrends = TrendReq(hl='en-US', tz=360, timeout=(10,25), proxies=['https://34.203.233.13:80',])
-        df = pd.DataFrame()
-        error_symbol = []
-        for ticker in tqdm(self.keywords):
-            temp_list = []
-            temp_list.append(ticker)
-            try:
-                pytrend.build_payload(kw_list=temp_list, timeframe='today 12-m')
-                df_res = pytrend.interest_over_time()
-                df[ticker] = df_res.loc[:, ticker]
-                df[ticker] = df[ticker]/df[ticker].max()
-            except:
-                error_symbol.append(ticker)
-        print(error_symbol)
-        return df
-        #return pytrend
+        if DoSymbol == True:
+            list_temp = [self.symbol]
+            pytrend = TrendReq(hl='en-US', tz=360) # this package is unoffical
+            #pytrend.build_payload(kw_list=list_temp, timeframe='today 12-m')
+
+            #df = pytrend.interest_over_time()
+            df = dailydata.get_daily_data(self.symbol, int(self.start.year), int(self.start.month), int(self.end.year), int(self.end.month))
+
+            df[self.symbol] = df[self.symbol]/df[self.symbol].max()
+
+            return df[self.symbol]
+
+        else:
+            pytrend = TrendReq(hl='en-US', tz=360) # this package is unoffical
+            df = pd.DataFrame()
+            error_symbol = []
+            for ticker in tqdm(self.keywords):
+                temp_list = []
+                temp_list.append(ticker)
+                try:
+                    pytrend.build_payload(kw_list=temp_list, timeframe='today 12-m')
+                    df_res = pytrend.interest_over_time()
+                    df[ticker] = df_res.loc[:, ticker]
+                    df[ticker] = df[ticker]/df[ticker].max()
+                except:
+                    error_symbol.append(ticker)
+            return df
 
 
 class BasicStatement:

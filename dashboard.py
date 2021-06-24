@@ -4,6 +4,7 @@ import requests
 import json
 import numpy as np
 import pandas_datareader as pdr
+import yahoo_fin.stock_info as yfs
 import pandas as pd
 import matplotlib as plt
 import seaborn as sns
@@ -15,20 +16,44 @@ from iex import IEXStocks
 from iex import YahooStocks
 from Strategy.class_Strategy import ShortTermStrategy
 from Strategy.class_Strategy import LongTermStrategy
+from Strategy.class_Strategy import TrendStrategy
 
 ## Setting ##
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 symbol = st.sidebar.text_input("Symbol", value="AAPL")
-etf_list = st.sidebar.text_input("Index", value="dow")
-day = st.sidebar.text_input('Day', value='2010-1-1')
+name_index = st.sidebar.text_input("Index", value="dow")
+day = st.sidebar.text_input('Day', value='2020-1-1')
 symbol_list = ['^IXIC', symbol]
+
+dow_list = yfs.tickers_dow()
+filename = ''
+if name_index =='dow':
+    dow_list = yfs.tickers_dow()
+elif stock_list == 'sp500':
+    filename = 'sp500'
+    dow_list = yfs.tickers_sp500()
+elif stock_list == 'nasdaq':
+    filename = 'nasdaq'
+    dow_list = yfs.tickers_nasdaq()
+elif stock_list == 'other':
+    filename = 'other'
+    dow_list = yfs.tickers_other()
+elif stock_list == 'selected':
+    filename = 'selected'
+    url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
+    temp_pd = pd.read_json(url)
+    temp_pd = temp_pd['Ticker']
+    dow_list = temp_pd.values.tolist()
+
+
 
 #############################################################
 # Time #
 #############################################################
 # start_day = datetime(2020,4,1)
-start_day = day
+#temp = datetime.strptime(start_day, '%Y-%m-%d')
+start_day = datetime.strptime(day, '%Y-%m-%d')
 end_day = datetime(2020,1,1)
 now_day = datetime.now()
 
@@ -46,13 +71,12 @@ stock_IEX = IEXStocks(TOKEN_KEY, symbol)
 stock_Yahoo = YahooStocks(symbol_list, start_day, now_day)
 #############################################################
 
-screen = st.sidebar.selectbox("view", ('Overview', 'Short Term Strategy','Long Term Strategy' ,'Fundamentals', 'News', 'Ownership', 'Technicals', 'Test'))
+screen = st.sidebar.selectbox("view", ('Overview', 'Short Term Strategy','Long Term Strategy', 'Google Trend', 'News', 'Fundamentals', 'Ownership', 'Technicals', 'Test'))
 
 st.title(screen)
 
 if screen == 'Overview':
     strategy_short = ShortTermStrategy(symbol, start_day, now_day)
-    #logo = stock_IEX.get_logo()
 
     df_price = strategy_short.get_price_data()
     df_info = yf.Ticker(symbol).info
@@ -67,7 +91,6 @@ if screen == 'Overview':
 
     col1, col2 = st.beta_columns(2)
     with col1:
-        #st.image(logo)
         st.subheader("{0}'s Price".format(symbol))
         st.line_chart(df_price['Adj Close'])
         st.subheader('Industry')
@@ -79,7 +102,7 @@ if screen == 'Overview':
 
 if screen == 'Short Term Strategy':
     from Strategy.PlotStrategy import main as splt
-    strategy = ShortTermStrategy(symbol, start_day, now_day)
+    #strategy = ShortTermStrategy(symbol, start_day, now_day)
     st.subheader('Bonliner Band: ')
     fig_BB = splt(symbol, offline_test=False, SelectStrategy = 'BB', day_init = start_day, today = now_day)
     st.pyplot(fig_BB)
@@ -89,23 +112,47 @@ if screen == 'Short Term Strategy':
 
 if screen == 'Long Term Strategy':
     from Strategy.runStrategy import main as srun
-    st.subheader(etf_list)
+    st.subheader(name_index)
     st.subheader('Low PER: ')
-    df_lowper = srun(stock_list=etf_list, stats='PER', Limit = 20)
+    df_lowper = srun(symbol, stock_list=name_index, stats='PER', Limit = 20)
     st.write(df_lowper)
 
     st.subheader('Low PBR: ')
-    df_lowpbr = srun(stock_list=etf_list, stats='PBR', Limit = 20)
+    df_lowpbr = srun(symbol, stock_list=name_index, stats='PBR', Limit = 20)
     st.write(df_lowpbr)
 
     st.subheader('ML: ')
-    df_pred = srun(stock_list=etf_list, stats='ML')
+    df_pred = srun(symbol, stock_list=name_index, stats='ML')
     st.write(df_pred)
+
+if screen == 'Google Trend':
+    strategy_Trend = TrendStrategy(symbol, index = dow_list, start=start_day, end=now_day, keywords=dow_list)
+    df_price = strategy_Trend.get_price_data(nomalization = True, DoSymbol =True)
+    df_trend_symbol = strategy_Trend.get_trend_data(DoSymbol = True)
+    df = pd.concat([df_price, df_trend_symbol], axis=1)
+
+    st.line_chart(df)
+
+if screen == 'News':
+    from yahoo_fin import news as ynews
+    news = ynews.get_yf_rss(symbol)
+    #st.write(news[0].keys())
+    """
+    # Summary
+    """
+    for i, v in enumerate (news):
+        st.subheader(v['title'])
+        st.write(v['summary'])
+        st.write(v['link'])
+        st.write(v['published'])
+        #st.write(v['summary_detail'])
+        #st.write(v['links'])
 
 if screen == 'Fundamentals':
     pass
     st.subheader('After corona')
     st.subheader('Beta')
+
 # st.write(df_nasdaq_symbol.astype('object'))
 # st.write(ticker_list[0])
 # st.line_chart(df2['Adj Close'])
@@ -120,9 +167,7 @@ if screen == 'Fundamentals':
 # st.write(chart[0]['close'])
 # st.write(stats)
 
-if screen == 'News':
-    pass
-    news = stock_IEX.get_news()
+
 # for i in range (10):
 # 	st.write('Headline')
 # 	st.write(news[i]['headline'])

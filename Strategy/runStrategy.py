@@ -4,12 +4,13 @@ import pandas_datareader as pdr
 import yfinance as yf
 import yahoo_fin.stock_info as yfs
 import matplotlib.pyplot as plt
+import matplotlib.ticker as pltticker
 import seaborn as sns
 
 import json
 import datetime
 
-def main(stock_list=['dow'], stats = 'PER', Limit = 10):
+def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
     # Get datetime for price of stock
     td_1y = datetime.timedelta(weeks=52/2)
     #td_1y = datetime.timedelta(weeks=52*3)
@@ -44,6 +45,7 @@ def main(stock_list=['dow'], stats = 'PER', Limit = 10):
 
     url = '/Users/hanseopark/Work/stock/' # in data
 
+#######################################################
     # Select strategy for situation
     if (stats == 'PER' or stats == "PBR"):
         strategy = LongTermStrategy(url, filename) # Select Long term strategy
@@ -51,9 +53,9 @@ def main(stock_list=['dow'], stats = 'PER', Limit = 10):
         #symbol = input('Write ticker name like aapl: ')
         #dow_list = [symbol]
         #strategy = TrendStrategy(symbol, start_day, today, keywords=dow_list)
-        strategy = TrendStrategy(dow_list, start_day, today, keywords=dow_list)
+        strategy = TrendStrategy(symbol='AAPL', index= dow_list, start= start_day, end= today, keywords=dow_list)
     elif stats == 'ML':
-        strategy = LongTermStrategy(url, filename) # Select Long term strategy
+        strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
 
     # Perform strategy and save
     url_threshold = url+'/data_origin/table{0}_{1}_{2}'.format(stats, filename,Limit)
@@ -75,38 +77,49 @@ def main(stock_list=['dow'], stats = 'PER', Limit = 10):
 
     elif stats == 'Trend':
         # Getting price
-        df_price = strategy.get_price_data(nomalization = True)
+        OnlySymbol = False
+        df_price = strategy.get_price_data(nomalization = True, DoSymbol = OnlySymbol)
         #print(df_price)
 
-        # Getting trend
-        df_tr = strategy.get_trend_data()
-        url_trend = url+'/data_origin/Trend_{0}'.format(filename)
-        df_tr.to_json(url_trend+'.json')
-        df_tr.to_csv(url_trend+'.csv')
-        #print(df_tr)
+        if OnlySymbol == True:
+            df_tr = strategy.get_trend_data(DoSymbol=OnlySymbol)
 
-        index = df_price.astype('str')
-        fig = plt.figure(figsize=(10,10))
-        ax_main = plt.subplot(1,1,1)
+            return df_tr
 
-        def x_date(x,pos):
-            try:
-                return index[int(x-0.5)][:7]
-            except indexerror:
-                return ''
+        else:
+            # Getting trend
+            df_tr = strategy.get_trend_data()
+            ticker_list = df_tr.columns
+#            url_trend = url+'/data_origin/Trend_{0}'.format(filename)
+#            df_tr.to_json(url_trend+'.json')
+#            df_tr.to_csv(url_trend+'.csv')
+            #print(df_tr)
 
-        # ax_main
-        ax_main.xaxis.set_major_locator(ticker.maxnlocator(10))
-        ax_main.xaxis.set_major_formatter(ticker.funcformatter(x_date))
-        ax_main.set_title("Stock's value with google trend", fontsize=22 )
-        #ax_main.plot(df_price['Adj Close'], label='ORLY')
-        for tic in dow_list:
-            ax_main.plot(df_tr[tic], label='Trend')
-        ax_main.plot(df_price['Adj Close'], label="Stock's value")
-        ax_main.legend(loc=2)
+            index = df_price.astype('str')
+            fig = plt.figure(figsize=(10,10))
+            ax_main = plt.subplot(1,1,1)
 
-        plt.grid()
-        plt.show()
+            def x_date(x,pos):
+                try:
+                    return index[int(x-0.5)][:7]
+                except indexerror:
+                    return ''
+
+            # ax_main
+    #        ax_main.xaxis.set_major_locator(pltticker.maxnlocator(10))
+    #        ax_main.xaxis.set_major_formatter(pltticker.funcformatter(x_date))
+            ax_main.set_title("Stock's value with google trend", fontsize=22 )
+            #ax_main.plot(df_price['Adj Close'], label='ORLY')
+            for tic in ticker_list:
+                ax_main.plot(df_tr[tic], label='Trend')
+            ax_main.plot(df_price['Adj Close'], label="Stock's value")
+            ax_main.legend(loc=2)
+
+            plt.grid()
+            plt.show()
+
+            #return fig
+            return df_tr
 
     elif stats == 'ML':
         url = '/Users/hanseopark/Work/stock'
@@ -157,6 +170,8 @@ def main(stock_list=['dow'], stats = 'PER', Limit = 10):
 
             # How to considef NaN data
             # We need how to take the NaN data. First of all, we remove the NaN column over ratio of 0.5.
+            y_df = df['Recent_price']
+            df = df.drop(['Recent_price'], axis=1)
             nulltotal = df.isnull().sum().sort_values(ascending=False)
             nullpercent = ( df.isnull().sum() / len(df) ).sort_values(ascending=False)
             nullpoint = pd.concat([nulltotal, nullpercent], axis=1, keys=['Total number of null', 'Percent of null'])
@@ -182,28 +197,26 @@ def main(stock_list=['dow'], stats = 'PER', Limit = 10):
             numeric_feats = df.dtypes[df.dtypes != 'object'].index
             skewed_feats = df[numeric_feats].apply(lambda x: skew(x)).sort_values(ascending=False)
             high_skew = skewed_feats[abs(skewed_feats) > 0.5]
+            print('High feature')
             print(high_skew)
 
+#            print("********"*10)
+#            print(df)
             for feature in high_skew.index:
                 df[feature] = np.log1p(df[feature]-df[feature].min()+1)
 
+#            print("********"*10)
+#            print(df)
+#            print("********"*10)
             # Split train and test for ML
-#            y_df = df['Recent_price']
-#            x_df = df.drop(['Recent_price'], axis=1 , inplace=True)
-#            y_train, y_test, x_train, x_test = train_test_split(y_df, x_df, test_size=0.2)
-#            print(y_train, y_test, x_train, x_test)
-
-            train_df, test_df = train_test_split(df, test_size=0.2)
-            y_train = train_df['Recent_price']
-            x_train = train_df.iloc[:, :-1]
-            y_test = test_df['Recent_price']
-            x_test = test_df.iloc[:, :-1]
+            y_train, y_test, x_train, x_test = train_test_split(y_df, df, test_size=0.2)
+            #print(y_train, y_test, x_train, x_test)
             test_index = x_test.index
 
             # Apply ML Model
 #            from sklearn.metrics import make_scorer
-#            from sklearn.model_selection import KFold, cross_val_score
-#            from sklearn.metrics import mean_squared_error
+            from sklearn.model_selection import KFold, cross_val_score
+            from sklearn.metrics import mean_squared_error
 #
 #            scorer = make_scorer(mean_squared_error, greater_is_better = False)
 #            def rmse_CV_train(model):
@@ -217,25 +230,37 @@ def main(stock_list=['dow'], stats = 'PER', Limit = 10):
 #                return (rmse)
 
             import xgboost as XGB
+            #from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
+            from sklearn.metrics import accuracy_score
 
-            the_model = XGB.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468,
+            model = XGB.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468,
                                         learning_rate=0.05, max_depth=3,
                                         min_child_weight=1.7817, n_estimators=2200,
                                         reg_alpha=0.4640, reg_lambda=0.8571,
                                         subsample=0.5213, random_state =7, nthread = -1)
-            the_model.fit(x_train, y_train)
-            y_pred = the_model.predict(x_test)
-            print('Predction: ', y_pred)
-            y_predict = np.floor(np.expm1(the_model.predict(x_test)))
-            print('Prediction: ', y_predict)
+            model.fit(x_train, y_train)
+            #y_predict = np.floor(np.expm1(model.predict(x_test)))
+            y_predict = np.floor(model.predict(x_test))
+            predictions = [round(value) for value in model.predict(x_test)]
 
+            print('Prediction')
+            print(y_predict)
+            print('y value of test')
             print(y_test)
+
             sub = pd.DataFrame()
             sub['Ticker'] = test_index
             sub['Price of Prediction'] = y_predict
             sub = sub.set_index('Ticker')
-            sub_new = pd.concat([sub, y_test], axis=1)
+            sub = pd.concat([sub, y_test], axis=1)
             print(sub)
+#            kfold = KFold(n_splits=10, random_state=7)
+#            results = cross_val_score(model, x_test, y_test, cv=kfold)
+#            print("Accuracy: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+
+            acc = mean_squared_error(y_test, predictions)
+            print('mse: ', acc)
+
             return sub
 
         else:
