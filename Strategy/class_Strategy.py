@@ -609,6 +609,9 @@ class TrendStrategy:
                     error_symbol.append(ticker)
             return df
 
+class NLPStrategy:
+    def __init__(self):
+        pass
 
 class BasicStatement:
     def __init__(self, ticker, start_day, end_day):

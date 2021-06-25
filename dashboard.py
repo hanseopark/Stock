@@ -71,13 +71,12 @@ stock_IEX = IEXStocks(TOKEN_KEY, symbol)
 stock_Yahoo = YahooStocks(symbol_list, start_day, now_day)
 #############################################################
 
-screen = st.sidebar.selectbox("view", ('Overview', 'Short Term Strategy','Long Term Strategy', 'Google Trend', 'News', 'Fundamentals', 'Ownership', 'Technicals', 'Test'))
+screen = st.sidebar.selectbox("view", ('Overview', 'Short Term Strategy','Long Term Strategy', 'Select','Google Trend', 'News', 'Fundamentals', 'Ownership', 'Technicals', 'Test'))
 
 st.title(screen)
 
 if screen == 'Overview':
     strategy_short = ShortTermStrategy(symbol, start_day, now_day)
-
     df_price = strategy_short.get_price_data()
     df_info = yf.Ticker(symbol).info
 
@@ -124,6 +123,35 @@ if screen == 'Long Term Strategy':
     st.subheader('ML: ')
     df_pred = srun(symbol, stock_list=name_index, stats='ML')
     st.write(df_pred)
+
+if screen == 'Select':
+    url_selected = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
+    df_selected = pd.read_json(url_selected)
+    for ticker in df_selected['Ticker']:
+        strategy_short = ShortTermStrategy(ticker, start_day, now_day)
+        df_price = strategy_short.get_price_data()
+        df_info = yf.Ticker(ticker).info
+        col1, col2 = st.beta_columns((2,1))
+        with col1:
+            st.subheader("{0}'s Price".format(ticker))
+            st.line_chart(df_price['Adj Close'])
+
+        with col2:
+            try:
+                st.subheader('Sector')
+                st.write(df_info['sector'])
+            except:
+                st.write('Null')
+            try:
+                st.subheader('PER [Trai]')
+                st.write(df_info['trailingPE'])
+            except:
+                st.write('Null')
+            try:
+                st.subheader('Volume, AveVolume')
+                st.write(df_info['volume'], df_info['averageVolume'])
+            except:
+                st.write('Null')
 
 if screen == 'Google Trend':
     strategy_Trend = TrendStrategy(symbol, index = dow_list, start=start_day, end=now_day, keywords=dow_list)

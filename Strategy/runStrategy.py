@@ -56,6 +56,9 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
         strategy = TrendStrategy(symbol='AAPL', index= dow_list, start= start_day, end= today, keywords=dow_list)
     elif stats == 'ML':
         strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
+    elif stats == 'NLP':
+        pass
+        strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
 
     # Perform strategy and save
     url_threshold = url+'/data_origin/table{0}_{1}_{2}'.format(stats, filename,Limit)
@@ -77,12 +80,36 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
     elif stats == 'Trend':
         # Getting price
-        OnlySymbol = False
-        df_price = strategy.get_price_data(nomalization = True, DoSymbol = OnlySymbol)
+        OnlySymbol = True
         #print(df_price)
 
         if OnlySymbol == True:
+            df_price = strategy.get_price_data(nomalization = True, DoSymbol = OnlySymbol)
             df_tr = strategy.get_trend_data(DoSymbol=OnlySymbol)
+
+            df = pd.concat([df_price, df_tr])
+
+            index = df_price.astype('str')
+            fig = plt.figure(figsize=(10,10))
+            ax_main = plt.subplot(1,1,1)
+
+            def x_date(x,pos):
+                try:
+                    return index[int(x-0.5)][:7]
+                except indexerror:
+                    return ''
+
+            # ax_main
+    #        ax_main.xaxis.set_major_locator(pltticker.maxnlocator(10))
+    #        ax_main.xaxis.set_major_formatter(pltticker.funcformatter(x_date))
+            ax_main.set_title("Stock's value with google trend", fontsize=22 )
+            #ax_main.plot(df_price['Adj Close'], label='ORLY')
+            ax_main.plot(df_price, label="Stock's value")
+            ax_main.plot(df_tr, label = 'Trend')
+            ax_main.legend(loc=2)
+
+            plt.grid()
+            plt.show()
 
             return df_tr
 
@@ -162,7 +189,8 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             plt.figure(figsize=(13,10))
             plt_corr = sns.heatmap(train_df_corr[top_corr_features].corr(), annot=True)
 
-            plt.show()
+            plt.savefig(url+'/Model/ML/corrHeatmap_{0}.eps'.format(filename))
+            #plt.show()
 
             # Split target
 #            train_y_label = train_df['Recent_price']
@@ -260,6 +288,12 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
             acc = mean_squared_error(y_test, predictions)
             print('mse: ', acc)
+            model.save_model(url+'/Model/ML/model_{0}.json'.format(filename))
+
+            ## Test Load model ##
+#            test_model = XGB.XGBRegressor()
+#            test_model.load_model(url+'/Model/ML/model_{0}.json'.format(filename))
+#            print(test_model.predict(x_test))
 
             return sub
 
@@ -302,13 +336,15 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 #            # All discrete features should now have integer dtypes (double-check this before using MI!)
 #            discrete_features = xf.dtypes == int
 
+    elif stats == 'NLP':
+        pass
 
 
 
 if __name__ == '__main__':
-    from class_Strategy import LongTermStrategy, TrendStrategy
+    from class_Strategy import LongTermStrategy, TrendStrategy, NLPStrategy
     s_list= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
-    statements = input('Choice statement (PER, PBR, Trend, ML): ')
+    statements = input('Choice statement (PER, PBR, Trend, ML, NLP): ')
     if (statements == 'PER' or statements == "PBR"):
         s2 = input('Set {} point(10, 20, 30): '.format(statements))
         LimitValue = int(s2)

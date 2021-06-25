@@ -16,7 +16,7 @@ def main(stock_list, day_init=datetime.datetime(2020,1,1), today=datetime.dateti
         df_recent = df.iloc[-1:]
         value_RSI = float(df_recent['RSI'])
         value_RSI_signal = float(df_recent['RSI signal'])
-        down = 30
+        down = 40
         if value_RSI < down:
             if value_RSI < value_RSI_signal:
                 selected_ticker.append(ticker)
