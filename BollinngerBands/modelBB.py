@@ -1,11 +1,6 @@
-import numpy as np
 import pandas as pd
-import pandas_datareader as pdr
-import yfinance as yf
 import yahoo_fin.stock_info as yfs
 
-import csv
-import json
 import datetime
 from tqdm import tqdm
 
@@ -13,7 +8,7 @@ from classBB import Stocks
 
 def main(stock_list, day_init=datetime.datetime(2020,1,1), today=datetime.datetime.now()):
 
-    # Get list of Dow tickers
+   # Get list of Dow tickers
     dow_list = yfs.tickers_dow()
     filename = ''
     if stock_list == 'dow':
@@ -32,11 +27,6 @@ def main(stock_list, day_init=datetime.datetime(2020,1,1), today=datetime.dateti
 
     selected_ticker = []
     for ticker in tqdm(dow_list):
-        def x_date(x,pos):
-            try:
-                return index[int(x-0.5)][:7]
-            except IndexError:
-                return ''
 
         stock = Stocks(ticker, start_day, today)
         df = stock.with_moving_ave()
@@ -57,10 +47,11 @@ def main(stock_list, day_init=datetime.datetime(2020,1,1), today=datetime.dateti
         if std_recent < mean and value_recent > value_day_ago and value_day_ago > value_day_ago_ago and value_recent < upper_recent:
             selected_ticker.append(ticker)
 
-    url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList.json'.format(today.date())
+    url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList'.format(today.date())
     df = pd.DataFrame(selected_ticker, columns=['Ticker'])
     #df.columns = ['Ticker']
-    df.to_json(url)
+    df.to_json(url+'json')
+    df.to_csv(url+'csv')
 
     print(df)
     return df

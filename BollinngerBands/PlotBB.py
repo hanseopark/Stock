@@ -66,6 +66,7 @@ def main():
     ax_1.hlines(y=mean, xmin=index[0], xmax=index[-1], colors='red')
 
     plt.grid()
+    plt.savefig('example_fig.png')
     plt.show()
 
 if __name__ == '__main__':
