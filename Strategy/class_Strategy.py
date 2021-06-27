@@ -33,7 +33,7 @@ class ShortTermStrategy:
             df_price = df_price.loc[self.start_day : self.end_day]
 
         else:
-            df_price = pdr.DataReader(self.symbol, 'yahoo',self. start_day, self.end_day)
+            df_price = pdr.DataReader(self.symbol, 'yahoo',self.start_day, self.end_day)
 
         return df_price
 
@@ -634,14 +634,13 @@ class NLPStrategy:
             url_news = self.url+'/data_origin/FS_'+self.etfname+'_summary.json'
             with open (url_news, 'r') as f:
                 title = json.load(f)
-
         else:
             summary = []
             news = ynews.get_yf_rss(ticker)
             for k,v in enumerate(news):
                 summary.append(v['summary'])
 
-            return summary
+        return summary
 
 class BasicStatement:
     def __init__(self, ticker, start_day, end_day):

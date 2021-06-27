@@ -336,7 +336,7 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 #            # All discrete features should now have integer dtypes (double-check this before using MI!)
 #            discrete_features = xf.dtypes == int
 
-    elif stats == 'NLP':
+    elif stats == 'NL':
         ## Test ##
         title = strategy.get_news_title()
         print(title)

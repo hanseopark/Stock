@@ -25,7 +25,7 @@ for ticker in dow_list:
     list_strategy = ['BolingerBand', 'RSI', 'DayTrading']
     for s in list_strategy:
         NameStrategy = s
-        res = strategy.Backtest(capital = c, name_strategy = NameStrategy, day=1)
+        res = strategy.Backtest(capital = c, name_strategy = NameStrategy)
 
         print('*'*100)
         print('{}'.format(s))
