@@ -57,8 +57,8 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
     elif stats == 'ML':
         strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
     elif stats == 'NLP':
-        pass
-        strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
+        strategy = NLPStrategy(url, filename, Offline= True) # Select Long term strategy
+        #strategy = NLPStrategy(url, filename, Offline= False) # Select Long term strategy
 
     # Perform strategy and save
     url_threshold = url+'/data_origin/table{0}_{1}_{2}'.format(stats, filename,Limit)
@@ -337,7 +337,10 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 #            discrete_features = xf.dtypes == int
 
     elif stats == 'NLP':
-        pass
+        ## Test ##
+        title = strategy.get_news_title()
+        print(title)
+
 
 
 

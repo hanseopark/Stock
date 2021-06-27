@@ -38,6 +38,7 @@ def main():
     ax_main.plot(index, df['RSI signal'], label='RSI signal')
 
     plt.grid()
+    plt.savefig('example_fig_RSI.png')
     plt.show()
 
 if __name__ == "__main__":

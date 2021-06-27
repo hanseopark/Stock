@@ -3,6 +3,7 @@ import pandas as pd
 import pandas_datareader as pdr
 import yfinance as yf
 import yahoo_fin.stock_info as yfs
+from yahoo_fin import news as ynews
 
 import json
 import requests
@@ -610,8 +611,37 @@ class TrendStrategy:
             return df
 
 class NLPStrategy:
-    def __init__(self):
-        pass
+    def __init__(self, url, etfname, Offline = False):
+        self.url = url
+        self.etfname = etfname
+        self.Offline = Offline
+
+    def get_news_title(self, ticker = 'AAPL'):
+        if self.Offline == True:
+            url_news = self.url+'/data_origin/FS_'+self.etfname+'_title.json'
+            with open (url_news, 'r') as f:
+                title = json.load(f)
+        else:
+            title = []
+            news = ynews.get_yf_rss(ticker)
+            for k,v in enumerate(news):
+                title.append(v['title'])
+
+        return title
+
+    def get_news_summary(self, ticker = 'AAPL'):
+        if self.Offline == True:
+            url_news = self.url+'/data_origin/FS_'+self.etfname+'_summary.json'
+            with open (url_news, 'r') as f:
+                title = json.load(f)
+
+        else:
+            summary = []
+            news = ynews.get_yf_rss(ticker)
+            for k,v in enumerate(news):
+                summary.append(v['summary'])
+
+            return summary
 
 class BasicStatement:
     def __init__(self, ticker, start_day, end_day):
