@@ -157,9 +157,12 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             ## Financial statement of stock
             df_stats = strategy.get_stats(preprocessing=True)
             df_addstats = strategy.get_addstats(True)
-            df_balsheets = strategy.get_balsheets(True)
-            df_income = strategy.get_income(True)
-            df_flow = strategy.get_flow(True)
+#            df_balsheets = strategy.get_balsheets(True)
+#            df_income = strategy.get_income(True)
+#            df_flow = strategy.get_flow(True)
+            df_balsheets = strategy.get_balsheets_element(dow_list)
+            df_income = strategy.get_income_element(dow_list)
+            df_flow = strategy.get_flow_element(dow_list)
 
 #            print(df_price)
 #            print(df_stats)
@@ -192,10 +195,6 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             plt.savefig(url+'/Model/ML/corrHeatmap_{0}.eps'.format(filename))
             #plt.show()
 
-            # Split target
-#            train_y_label = train_df['Recent_price']
-#            train_df = train_df.drop(['Recent_price'], axis=1, inplace=True)
-
             # How to considef NaN data
             # We need how to take the NaN data. First of all, we remove the NaN column over ratio of 0.5.
             y_df = df['Recent_price']
@@ -204,15 +203,14 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             nullpercent = ( df.isnull().sum() / len(df) ).sort_values(ascending=False)
             nullpoint = pd.concat([nulltotal, nullpercent], axis=1, keys=['Total number of null', 'Percent of null'])
             print(nullpoint)
-
             remove_cols = nullpercent[nullpercent >= 0.5].keys()
             df = df.drop(remove_cols, axis=1)
             print(df.isnull().sum().max())
             newtotal = df.isnull().sum().sort_values(ascending=False)
-            print(newtotal)
 
             # filling the numeric data
-            numeric_missed = ['Issuance', 'PER', 'ROE(%)', 'PBR', 'DividendsPaid']
+            numeric_missed = newtotal.index
+            #numeric_missed = ['minorityInterest', 'PER', 'ROE(%)', 'PBR', 'DividendsPaid']
             for feature in numeric_missed:
                 df[feature] = df[feature].fillna(0)
 
@@ -233,9 +231,9 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             for feature in high_skew.index:
                 df[feature] = np.log1p(df[feature]-df[feature].min()+1)
 
-#            print("********"*10)
-#            print(df)
-#            print("********"*10)
+            print("********"*10)
+            print(df)
+            print("********"*10)
             # Split train and test for ML
             y_train, y_test, x_train, x_test = train_test_split(y_df, df, test_size=0.2)
             #print(y_train, y_test, x_train, x_test)
@@ -258,14 +256,17 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 #                return (rmse)
 
             import xgboost as XGB
-            #from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
-            from sklearn.metrics import accuracy_score
 
             model = XGB.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468,
                                         learning_rate=0.05, max_depth=3,
                                         min_child_weight=1.7817, n_estimators=2200,
                                         reg_alpha=0.4640, reg_lambda=0.8571,
                                         subsample=0.5213, random_state =7, nthread = -1)
+            # To solve error
+            x_train = x_train.loc[:,~x_train.columns.duplicated()]
+            duplicate_columns = x_train.columns[x_train.columns.duplicated()]
+            x_test = x_test.loc[:,~x_test.columns.duplicated()]
+            duplicate_columns_t = x_test.columns[x_test.columns.duplicated()]
             model.fit(x_train, y_train)
             #y_predict = np.floor(np.expm1(model.predict(x_test)))
             y_predict = np.floor(model.predict(x_test))

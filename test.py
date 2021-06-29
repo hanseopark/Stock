@@ -27,14 +27,35 @@
 #price = yfs.get_live_price('AAPL')
 #print(price)
 
-from datetime import datetime, timedelta
-d = datetime(2020,1,1)
-now = datetime.now()
-print(d.isoformat())
-print(d.strftime("%Y-%m-%d"))
-print(d.strftime("%Y"))
-print(d.strftime("%m"))
-print(now.strftime("%m"))
-print(int(now.strftime("%m")))
-print(now.strftime("%d"))
-print(int(now.strftime("%d")))
+#from datetime import datetime, timedelta
+#d = datetime(2020,1,1)
+#now = datetime.now()
+#print(d.isoformat())
+#print(d.strftime("%Y-%m-%d"))
+#print(d.strftime("%Y"))
+#print(d.strftime("%m"))
+#print(now.strftime("%m"))
+#print(int(now.strftime("%m")))
+#print(now.strftime("%d"))
+#print(int(now.strftime("%d")))
+
+from Strategy.class_Strategy import LongTermStrategy
+import yahoo_fin.stock_info as yfs
+url = '/Users/hanseopark/Work/stock/' # in data
+filename='sp500'
+strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
+#df =strategy.get_PM()
+#df = strategy.get_Cash()
+#df = strategy.get_Debt()
+#df = strategy.get_addstats(True)
+
+#dow_list = yfs.tickers_sp500()
+dow_list = yfs.tickers_dow()
+
+#df = strategy.get_balsheets_element(dow_list)
+df = strategy.get_income_element(dow_list)
+#df = strategy.get_income_element()
+#df = strategy.get_flow_element()
+#df = strategy.get_flow_element(dow_list)
+print(df.info)
+print(df.dtypes)

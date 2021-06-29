@@ -91,14 +91,25 @@ def main(stock_list=['dow']):
     print('### '+'OUT'+' ###')
     print('#'*11)
     print(df_res_out)
-    print('#'*30)
-    print(df_res.index)
-    print(df_res_out.index)
-    print('#'*30)
+    selected_ticker = df_res.index
+    url = '/Users/hanseopark/Work/stock/' # in data
+    strategy = LongTermStrategy(url, filename) # Select Long term strategy
+    df_stats = strategy.get_stats(preprocessing = True)
+    df_res = df_res.join(df_stats).copy()
+
+    # detail condition
+    df_res = df_res[df_res['PER'] < 20]
+    df_res = df_res[df_res['forPER'] < df_res['PER']]
+
+    print(df_res)
+    url_res = url+'/data_ForTrading/{0}_TickerList_corona'.format(today.date())
+    df_res.to_json(url_res+'.json')
+    df_res.to_csv(url_res+'.csv')
 
     return df_res
 
 if __name__ == '__main__':
+    from class_Strategy import LongTermStrategy, TrendStrategy, NLPStrategy
     s_list= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
     main(stock_list=s_list)
 

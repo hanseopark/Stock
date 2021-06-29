@@ -50,8 +50,8 @@ def main(stock_list, day_init=datetime.datetime(2020,1,1), today=datetime.dateti
     url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList'.format(today.date())
     df = pd.DataFrame(selected_ticker, columns=['Ticker'])
     #df.columns = ['Ticker']
-    df.to_json(url+'json')
-    df.to_csv(url+'csv')
+    df.to_json(url+'.json')
+    df.to_csv(url+'.csv')
 
     print(df)
     return df

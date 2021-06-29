@@ -268,12 +268,16 @@ class LongTermStrategy:
         url_addstats = self.url+'/data_origin/FS_'+self.etfname+'_addstats.json'
         df = pd.read_json(url_addstats)
         if preprocessing == True:
+            df_beta = self.get_Beta()
+            df_divr = self.get_DivRate() # Annual diviend rate
             df_roe = self.get_ROE() # ROE
             df_roa = self.get_ROA() # ROA
             df_pm = self.get_PM() # Profit Margin
+            df_cash = self.get_Cash() # Total Cash
+            df_debt = self.get_Debt() # Total Debt
 
             # Concat mulit dataframe
-            df = pd.concat([df_roe, df_roa, df_pm], axis=1)
+            df = pd.concat([df_beta, df_divr, df_roe, df_roa, df_pm, df_cash, df_debt], axis=1)
 
         return df
 
@@ -394,6 +398,26 @@ class LongTermStrategy:
 
         return df
 
+    def get_Beta(self):
+        df = self.get_addstats()
+        df_beta = df[df.Attribute.str.contains('Beta')].copy()
+        df_beta['Beta'] = df_beta.loc[:, 'Value']
+        df_beta = df_beta.drop(['Attribute', 'Value'], axis=1)
+        df_beta = df_beta.set_index('Ticker')
+
+        #return df_beta.astype(float)
+        return df_beta.astype(float)
+
+    def get_DivRate(self):
+        df = self.get_addstats()
+        df_divr = df[df.Attribute.str.contains('Trailing Annual Dividend Rate')].copy()
+        df_divr['AnnualDividendRate']= df_divr.loc[:, 'Value']
+        df_divr = df_divr.drop(['Attribute', 'Value'], axis=1)
+        df_divr = df_divr.set_index('Ticker')
+
+        #return df_divr.astype(float)
+        return df_divr.astype(float)
+
     def get_ROE(self):
         df = self.get_addstats()
         df_roe = df[df.Attribute.str.contains('Return on Equity')].copy()
@@ -439,6 +463,24 @@ class LongTermStrategy:
 
         return df_pm.astype(float)
 
+    def get_Cash(self):
+        df = self.get_addstats()
+        df_cash = df[df.Attribute.str.contains('Total Cash Per Share')].copy()
+        df_cash['TotalCash'] = df_cash.loc[:, 'Value']
+        df_cash = df_cash.drop(['Attribute', 'Value'], axis=1)
+        df_cash = df_cash.set_index('Ticker')
+
+        return df_cash.astype(float)
+
+    def get_Debt(self):
+        df = self.get_addstats()
+        df_debt = df[df.Attribute.str.contains('Total Debt/Equity')].copy()
+        df_debt['TotalDebt'] = df_debt.loc[:, 'Value']
+        df_debt = df_debt.drop(['Attribute', 'Value'], axis=1)
+        df_debt = df_debt.set_index('Ticker')
+
+        return df_debt.astype(float)
+
     ## For balance sheets
 
     def get_balsheets_element(self, etf_list =['AAPL']):
@@ -456,7 +498,7 @@ class LongTermStrategy:
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
 
-        return df
+        return df.astype(float)
 
     def get_TA(self):
         df = self.get_balsheets()
@@ -476,15 +518,18 @@ class LongTermStrategy:
         list_df = temp_df['Breakdown'].to_list()
         df = pd.DataFrame(columns=list_df, index = self.etf_list)
         print('For income statements')
+        error_symbols = []
         for ticker in tqdm(self.etf_list):
+            temp_df = df_stats[df_stats.Ticker == ticker].copy()
             list_df = temp_df['Breakdown'].to_list()
-            df = pd.DataFrame(columns=list_df, index = self.etf_list)
             for att in list_df:
                 temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
+            error_symbols.append(ticker)
 
-        return df
+        print('Error symbol: ', error_symbols)
+        return df.astype(float)
 
     def get_TR(self):
         df = self.get_income()
@@ -512,7 +557,7 @@ class LongTermStrategy:
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
 
-        return df
+        return df.astype(float)
 
     def get_DIV(self):
         df = self.get_flow()

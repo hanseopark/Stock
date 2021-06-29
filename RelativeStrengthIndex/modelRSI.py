@@ -32,8 +32,17 @@ if __name__ == '__main__':
     today = datetime.datetime.now()
     start_day = today - td_1y
 
-    url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList.json'.format(today.date())
-    s_list = pd.read_json(url)['Ticker'].values.tolist()
+    s = input('what is strategy ? (BB, Corona) ')
+    if s == 'BB':
+        url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList.json'.format(today.date())
+        s_list = pd.read_json(url)['Ticker'].values.tolist()
+    elif s == 'Corona':
+        url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList_corona.json'.format(today.date())
+        s_list = pd.read_json(url).index
+
+    else:
+        url = '/Users/hanseopark/Work/stock/data_ForTrading/{0}_TickerList.json'.format(today.date())
+        s_list = pd.read_json(url)['Ticker'].values.tolist()
     main(stock_list = s_list, day_init = start_day)
 
 else:
