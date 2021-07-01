@@ -1,3 +1,4 @@
+from pandas_datareader import data as pdr
 import yahoo_fin.stock_info as yfs
 import pandas as pd
 from tqdm import tqdm
@@ -89,6 +90,7 @@ def main(stock_list):
             # Getting cash flow statements
             flow = yfs.get_cash_flow(ticker)
             dow_flow[ticker] = flow
+
         except:
             error_symbols.append(ticker)
 
@@ -130,13 +132,11 @@ def main(stock_list):
     combined_balsheets.columns = ['Ticker', 'Breakdown', 'Recent']
     combined_income.columns = ["Ticker", "Breakdown", "Recent"]
     combined_flow.columns = ["Ticker", "Breakdown", "Recent"]
-
 #    print(combined_stats)
-#    print(combined_addstats)
-#    print(combined_balsheets)
-#    print(combined_income)
-#    print(combined_flow)
-
+    print(combined_addstats)
+    print(combined_balsheets)
+    print(combined_income)
+    print(combined_flow)
     list_stats = ['stats', 'addstats', 'balsheets', 'income', 'flow']
     #url = '../data/FS_{0}_{1}'.format(filename,stats)
     for s in list_stats:

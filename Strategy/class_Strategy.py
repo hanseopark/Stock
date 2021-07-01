@@ -258,9 +258,10 @@ class LongTermStrategy:
             df_pbr = self.get_PBR() # Price/Book
             df_peg = self.get_PEG() # Price/Earning growth
             df_forper = self.get_FORPER() # Forward PER
+            df_cap = self.get_CAP() # Market Cap
 
             # Concat mulit dataframe
-            df = pd.concat([df_per, df_psr, df_pbr, df_peg, df_forper], axis=1)
+            df = pd.concat([df_per, df_psr, df_pbr, df_peg, df_forper, df_cap], axis=1)
 
         return df
 
@@ -329,6 +330,10 @@ class LongTermStrategy:
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
 
+        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_stasts_element'
+        df.astype(float).to_json(url_stats+'.json')
+        df.astype(float).to_csv(url_stats+'.csv')
+
         return df
 
     def get_PER(self):
@@ -391,6 +396,22 @@ class LongTermStrategy:
 
         return df_temp
 
+    def get_CAP(self):
+        df = self.get_stats()
+        df_cap = df[df.Attribute.str.contains('Cap')].copy()
+        df_cap['marketCap'] = df_cap.loc[:, 'Recent']
+        df_cap = df_cap.drop(['Attribute', 'Recent'], axis=1)
+        df_cap = df_cap.set_index('Ticker')
+        df_cap = df_cap.fillna(value=np.nan)
+        for ticker in df_cap.index:
+            value = df_cap.loc[ticker, 'marketCap']
+            if type(value) == str:
+                value = float(value.replace('.','').replace('T','0000000000').replace('B','0000000').replace('M','0000').replace('k','0'))
+            df_cap.loc[ticker, 'marketCap'] = value
+
+        return df_cap.astype(float)
+
+
     ## For addstats
     def get_addstats_element(self, etf_list =['AAPL']):
         df_stats = self.get_addstats()
@@ -406,6 +427,10 @@ class LongTermStrategy:
                 temp_df_stats = df_stats[df_stats.Attribute == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Value']
+
+        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_addstatsa_element'
+        df.astype(float).to_json(url_stats+'.json')
+        df.astype(float).to_csv(url_stats+'.csv')
 
         return df
 
@@ -508,6 +533,9 @@ class LongTermStrategy:
                 temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
+        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_balsheets_element'
+        df.astype(float).to_json(url_stats+'.json')
+        df.astype(float).to_csv(url_stats+'.csv')
 
         return df.astype(float)
 
@@ -540,6 +568,10 @@ class LongTermStrategy:
             error_symbols.append(ticker)
 
         print('Error symbol: ', error_symbols)
+        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_income_element'
+        df.astype(float).to_json(url_stats+'.json')
+        df.astype(float).to_csv(url_stats+'.csv')
+
         return df.astype(float)
 
     def get_TR(self):
@@ -567,6 +599,9 @@ class LongTermStrategy:
                 temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
+        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_flow_element'
+        df.astype(float).to_json(url_stats+'.json')
+        df.astype(float).to_csv(url_stats+'.csv')
 
         return df.astype(float)
 

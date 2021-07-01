@@ -1,6 +1,8 @@
 # I haven't yet understood thing.
 # It is testing
 
+from tqdm import tqdm
+
 #from Strategy.PlotStrategy import main as splt
 #fig = splt('AAPL',False,'BB')
 #fig.show()
@@ -44,17 +46,15 @@ import yahoo_fin.stock_info as yfs
 url = '/Users/hanseopark/Work/stock/' # in data
 filename='nasdaq'
 strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
-#df =strategy.get_PM()
+df =strategy.get_CAP()
+print(df)
 #df = strategy.get_Cash()
 #df = strategy.get_Debt()
 #df = strategy.get_addstats(True)
 
 #dow_list = yfs.tickers_sp500()
-dow_list = yfs.tickers_nasdaq()
+#dow_list = yfs.tickers_nasdaq()
 
-df = strategy.get_PER()
-for i in df.index:
-    print(df.loc[i,'PER'])
 #print(df)
 #df = strategy.get_balsheets_element(dow_list)
 #df = strategy.get_income_element(dow_list)
@@ -65,5 +65,29 @@ for i in df.index:
 #print(df.dtypes)
 #df_stats = strategy.get_stats(True)
 #df_psr = strategy.get_PSR()
-df_roa = strategy.get_ROA()
-print(df_roa)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

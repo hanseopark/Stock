@@ -151,7 +151,11 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
     elif stats == 'ML':
         url = '/Users/hanseopark/Work/stock'
         #df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
-        df_price = pd.read_csv(url+'/data_origin/FS_{0}_Recent_Value.csv'.format(filename))
+        try:
+            df_price = pd.read_json(url+'/data_origin/FS_{0}_Recent_Value.json'.format(filename))
+        except:
+            df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
+
         SpecialStatements = True
 
         if SpecialStatements == True:
@@ -161,9 +165,16 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 #            df_balsheets = strategy.get_balsheets(True)
 #            df_income = strategy.get_income(True)
 #            df_flow = strategy.get_flow(True)
-            df_balsheets = strategy.get_balsheets_element(dow_list)
-            df_income = strategy.get_income_element(dow_list)
-            df_flow = strategy.get_flow_element(dow_list)
+
+            try:
+                df_balsheets = pd.read_json(url+'/data_preprocessing/{0}_balsheets_element.json'.format(filename))
+                df_income = pd.read_json(url+'/data_preprocessing/{0}_income_element.json'.format(filename))
+                df_flow = pd.read_json(url+'/data_preprocessing/{0}_flow_element.json'.format(filename))
+
+            except:
+                df_balsheets = strategy.get_balsheets_element(dow_list)
+                df_income = strategy.get_income_element(dow_list)
+                df_flow = strategy.get_flow_element(dow_list)
 
 #            print(df_price)
 #            print(df_stats)
@@ -176,7 +187,7 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             print(df)
             from pandas.api.types import is_numeric_dtype
             num_cols = [is_numeric_dtype(dtype) for dtype in df.dtypes]
-            print(num_cols)
+            #print(num_cols)
 
             # Split data and test For correlation
             from sklearn.model_selection import train_test_split
@@ -185,9 +196,9 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             # Correlation for features
             corrmat = train_df_corr.corr()
             top_corr_features = corrmat.index[abs(corrmat['Recent_price'])>0]
-            print(top_corr_features)
+            #print(top_corr_features)
 
-            print(corrmat['Recent_price'].sort_values(ascending=False))
+            #print(corrmat['Recent_price'].sort_values(ascending=False))
 
             # Heatmap
             plt.figure(figsize=(13,10))
@@ -196,18 +207,25 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             plt.savefig(url+'/Model/ML/corrHeatmap_{0}.eps'.format(filename))
             #plt.show()
 
+
             # How to considef NaN data
             # We need how to take the NaN data. First of all, we remove the NaN column over ratio of 0.5.
-            y_df = df['Recent_price']
-            df = df.drop(['Recent_price'], axis=1)
+            print("###### NAN #######")
+            #y_df = df['Recent_price']
+            #df = df.drop(['Recent_price'], axis=1)
             nulltotal = df.isnull().sum().sort_values(ascending=False)
             nullpercent = ( df.isnull().sum() / len(df) ).sort_values(ascending=False)
             nullpoint = pd.concat([nulltotal, nullpercent], axis=1, keys=['Total number of null', 'Percent of null'])
             print(nullpoint)
-            remove_cols = nullpercent[nullpercent >= 0.5].keys()
+            remove_cols = nullpercent[nullpercent >= 0.6].keys()
             df = df.drop(remove_cols, axis=1)
             print(df.isnull().sum().max())
             newtotal = df.isnull().sum().sort_values(ascending=False)
+            print(newtotal)
+
+            ####################
+            ### Remove index ###
+            ####################
 
             # filling the numeric data
             numeric_missed = newtotal.index
@@ -229,19 +247,30 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
 #            print("********"*10)
 #            print(df)
-            for feature in high_skew.index:
-                df[feature] = np.log1p(df[feature]-df[feature].min()+1)
+#            for feature in high_skew.index:
+#                df[feature] = np.log1p(df[feature]-df[feature].min()+1)
 
             print("********"*10)
             print(df)
             print("********"*10)
-            # Split train and test for ML
-            y_train, y_test, x_train, x_test = train_test_split(y_df, df, test_size=0.2)
-            #print(y_train, y_test, x_train, x_test)
-            test_index = x_test.index
 
-            # Apply ML Model
-#            from sklearn.metrics import make_scorer
+
+            # Split train and test for ML
+
+            y_df = df['Recent_price']
+            df = df.drop(['Recent_price'], axis=1)
+
+            y_df = y_df.to_frame()
+            #y_train, y_test, x_train, x_test = train_test_split(y_df, df, test_size=0.2)
+            #print(y_train, y_test, x_train, x_test)
+
+            spe_list = ['AAPL']
+            y_test = y_df.loc[spe_list, :]
+            x_test = df.loc[spe_list, :]
+            y_train = y_df.drop(spe_list, axis=0)
+            x_train = df.drop(spe_list, axis=0)
+
+            test_index = x_test.index
             from sklearn.model_selection import KFold, cross_val_score
             from sklearn.metrics import mean_squared_error
 #
@@ -269,8 +298,10 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             x_test = x_test.loc[:,~x_test.columns.duplicated()]
             duplicate_columns_t = x_test.columns[x_test.columns.duplicated()]
             model.fit(x_train, y_train)
+
             #y_predict = np.floor(np.expm1(model.predict(x_test)))
             y_predict = np.floor(model.predict(x_test))
+
             predictions = [round(value) for value in model.predict(x_test)]
 
             print('Prediction')
