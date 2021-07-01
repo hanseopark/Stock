@@ -337,8 +337,15 @@ class LongTermStrategy:
         df_per['PER'] = df_per.loc[:, 'Recent']
         df_per = df_per.drop(['Attribute', 'Recent'], axis=1)
         df_per = df_per.set_index('Ticker')
+        df_per = df_per.fillna(value=np.nan)
+        df_temp = pd.DataFrame()
+        for col in df_per.columns:
+            df_temp[col] = pd.to_numeric(df_per[col], errors='coerce')
 
-        return df_per.astype(float)
+        return df_temp.astype(float)
+
+
+        #return df_per.astype(float)
 
     def get_PSR(self):
         df = self.get_stats()
@@ -346,8 +353,12 @@ class LongTermStrategy:
         df_psr['PSR'] = df_psr.loc[:, 'Recent']
         df_psr = df_psr.drop(['Attribute', 'Recent'], axis=1)
         df_psr = df_psr.set_index('Ticker')
+        df_psr = df_psr.fillna(value=np.nan)
+        df_temp = pd.DataFrame()
+        for col in df_psr.columns:
+            df_temp[col] = pd.to_numeric(df_psr[col], errors='coerce')
 
-        return df_psr.astype(float)
+        return df_temp.astype(float)
 
     def get_PBR(self):
         df = self.get_stats()
@@ -443,7 +454,7 @@ class LongTermStrategy:
         for ticker in df_roa.index:
             value = df_roa.loc[ticker, 'ROA(%)']
             if type(value) == str:
-                value = float(value[:-1])
+                value = float(value[:-1].replace(',',''))
             df_roa.loc[ticker, 'ROA(%)'] = value
 
         return df_roa.astype(float)
@@ -458,7 +469,7 @@ class LongTermStrategy:
         for ticker in df_pm.index:
             value = df_pm.loc[ticker, 'ProfitMargin(%)']
             if type(value) == str:
-                value = float(value[:-1])
+                value = float(value[:-1].replace(',',''))
             df_pm.loc[ticker, 'ProfitMargin(%)'] = value
 
         return df_pm.astype(float)

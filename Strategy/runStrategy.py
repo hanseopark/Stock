@@ -150,7 +150,8 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
     elif stats == 'ML':
         url = '/Users/hanseopark/Work/stock'
-        df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
+        #df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
+        df_price = pd.read_csv(url+'/data_origin/FS_{0}_Recent_Value.csv'.format(filename))
         SpecialStatements = True
 
         if SpecialStatements == True:

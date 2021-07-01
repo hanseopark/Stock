@@ -42,7 +42,7 @@
 from Strategy.class_Strategy import LongTermStrategy
 import yahoo_fin.stock_info as yfs
 url = '/Users/hanseopark/Work/stock/' # in data
-filename='sp500'
+filename='nasdaq'
 strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
 #df =strategy.get_PM()
 #df = strategy.get_Cash()
@@ -50,12 +50,20 @@ strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term st
 #df = strategy.get_addstats(True)
 
 #dow_list = yfs.tickers_sp500()
-dow_list = yfs.tickers_dow()
+dow_list = yfs.tickers_nasdaq()
 
+df = strategy.get_PER()
+for i in df.index:
+    print(df.loc[i,'PER'])
+#print(df)
 #df = strategy.get_balsheets_element(dow_list)
-df = strategy.get_income_element(dow_list)
+#df = strategy.get_income_element(dow_list)
 #df = strategy.get_income_element()
 #df = strategy.get_flow_element()
 #df = strategy.get_flow_element(dow_list)
-print(df.info)
-print(df.dtypes)
+#print(df.info)
+#print(df.dtypes)
+#df_stats = strategy.get_stats(True)
+#df_psr = strategy.get_PSR()
+df_roa = strategy.get_ROA()
+print(df_roa)
