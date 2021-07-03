@@ -151,6 +151,11 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
     elif stats == 'ML':
         url = '/Users/hanseopark/Work/stock'
         #df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
+        energy_list = ['APA', 'COG', 'COP', 'CVX', 'DVN', 'EOG', 'FANG', 'HAL', 'HES', 'KMI', 'MPC', 'MRO', 'NOV', 'OKE', 'OXY', 'PSX', 'PXD', 'SLB', 'VLO', 'WMB', 'XOM']
+        port_list = energy_list
+        port_list = ['BP']
+        #port_list = ['AAPL', 'MSFT']
+
         try:
             df_price = pd.read_json(url+'/data_origin/FS_{0}_Recent_Value.json'.format(filename))
         except:
@@ -184,7 +189,7 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 #            print(df_flow)
 
             df = pd.concat([df_stats, df_addstats, df_balsheets, df_income, df_flow, df_price], axis=1)
-            print(df)
+            #print(df)
             from pandas.api.types import is_numeric_dtype
             num_cols = [is_numeric_dtype(dtype) for dtype in df.dtypes]
             #print(num_cols)
@@ -210,22 +215,51 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
             # How to considef NaN data
             # We need how to take the NaN data. First of all, we remove the NaN column over ratio of 0.5.
-            print("###### NAN #######")
-            #y_df = df['Recent_price']
-            #df = df.drop(['Recent_price'], axis=1)
-            nulltotal = df.isnull().sum().sort_values(ascending=False)
-            nullpercent = ( df.isnull().sum() / len(df) ).sort_values(ascending=False)
-            nullpoint = pd.concat([nulltotal, nullpercent], axis=1, keys=['Total number of null', 'Percent of null'])
-            print(nullpoint)
-            remove_cols = nullpercent[nullpercent >= 0.6].keys()
-            df = df.drop(remove_cols, axis=1)
-            print(df.isnull().sum().max())
-            newtotal = df.isnull().sum().sort_values(ascending=False)
-            print(newtotal)
 
             ####################
             ### Remove index ###
             ####################
+            df_index_null = pd.DataFrame(columns=['TotalNull', 'PercentOfNull'])
+            for ticker in df.index:
+                temp_df = df.loc[ticker,:]
+                count_null = temp_df.isnull().sum()
+                percent_count_null = count_null/len(temp_df)
+                df_index_null.loc[ticker, 'TotalNull'] = count_null
+                df_index_null.loc[ticker, 'PercentOfNull'] = percent_count_null
+            #print(df_index_null)
+            remove_index = df_index_null[df_index_null['PercentOfNull']>0.5].index.tolist()
+            #print(remove_index)
+            print(len(remove_index))
+            for tic in port_list:
+                print(tic)
+                if tic in remove_index:
+                    remove_index.remove(tic)
+                    print('remove')
+                    #remove_index = remove_index.remove(tic)
+            #print(remove_index)
+            print(len(remove_index))
+            #print(remove_index)
+            df = df.drop(remove_index, axis=0)
+            #print(df)
+
+            ######################
+            ### Remove columns ###
+            ######################
+
+            print("###### NAN #######")
+            #y_df = df['Recent_price']
+            #df = df.drop(['Recent_price'], axis=1)
+            nulltotal = df.isnull().sum().sort_values(ascending=False)
+            #print(nulltotal)
+            nullpercent = ( df.isnull().sum() / len(df) ).sort_values(ascending=False)
+            #print(nullpercent)
+            nullpoint = pd.concat([nulltotal, nullpercent], axis=1, keys=['Total number of null', 'Percent of null'])
+            #print(nullpoint)
+            remove_cols = nullpercent[nullpercent >= 0.1].keys()
+            df = df.drop(remove_cols, axis=1)
+            #print(df.isnull().sum().max())
+            newtotal = df.isnull().sum().sort_values(ascending=False)
+            #print(newtotal)
 
             # filling the numeric data
             numeric_missed = newtotal.index
@@ -233,8 +267,8 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             for feature in numeric_missed:
                 df[feature] = df[feature].fillna(0)
 
-            print('Re check')
-            print(df.isnull().sum().max())
+            #print('Re check')
+            #print(df.isnull().sum().max())
 
 
             ## Feature Engineering
@@ -242,8 +276,8 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             numeric_feats = df.dtypes[df.dtypes != 'object'].index
             skewed_feats = df[numeric_feats].apply(lambda x: skew(x)).sort_values(ascending=False)
             high_skew = skewed_feats[abs(skewed_feats) > 0.5]
-            print('High feature')
-            print(high_skew)
+            #print('High feature')
+            #print(high_skew)
 
 #            print("********"*10)
 #            print(df)
@@ -257,18 +291,28 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
             # Split train and test for ML
 
-            y_df = df['Recent_price']
-            df = df.drop(['Recent_price'], axis=1)
+                # Taget setting
+            #y_df = df['Recent_price']
+            #df = df.drop(['Recent_price'], axis=1)
+            y_df = df['marketCap']
+            df = df.drop(['Recent_price', 'marketCap'], axis=1)
 
             y_df = y_df.to_frame()
             #y_train, y_test, x_train, x_test = train_test_split(y_df, df, test_size=0.2)
             #print(y_train, y_test, x_train, x_test)
 
-            spe_list = ['AAPL']
-            y_test = y_df.loc[spe_list, :]
-            x_test = df.loc[spe_list, :]
-            y_train = y_df.drop(spe_list, axis=0)
-            x_train = df.drop(spe_list, axis=0)
+            y_test = y_df.loc[y_df.index.intersection(port_list), :]
+            x_test = df.loc[df.index.intersection(port_list), :]
+            y_train = y_df.drop(port_list, axis=0)
+            x_train = df.drop(port_list, axis=0)
+
+#            try:
+#                y_test = y_df.loc[port_list, :]
+#                x_test = df.loc[port_list, :]
+#                y_train = y_df.drop(port_list, axis=0)
+#                x_train = df.drop(port_list, axis=0)
+#            except:
+#                return print('It is not enought information of ticker')
 
             test_index = x_test.index
             from sklearn.model_selection import KFold, cross_val_score
@@ -311,9 +355,12 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
             sub = pd.DataFrame()
             sub['Ticker'] = test_index
-            sub['Price of Prediction'] = y_predict
+            sub['MarketCapOfPrediction'] = y_predict
             sub = sub.set_index('Ticker')
             sub = pd.concat([sub, y_test], axis=1)
+            sub['ratio'] = sub.MarketCapOfPrediction / sub.marketCap
+            sub = sub.sort_values(by= 'ratio', ascending=False)
+            #print(corrmat['Recent_price'].sort_values(ascending=False))
             print(sub)
 #            kfold = KFold(n_splits=10, random_state=7)
 #            results = cross_val_score(model, x_test, y_test, cv=kfold)

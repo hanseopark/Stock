@@ -41,13 +41,13 @@ from tqdm import tqdm
 #print(now.strftime("%d"))
 #print(int(now.strftime("%d")))
 
-from Strategy.class_Strategy import LongTermStrategy
-import yahoo_fin.stock_info as yfs
-url = '/Users/hanseopark/Work/stock/' # in data
-filename='nasdaq'
-strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
-df =strategy.get_CAP()
-print(df)
+#from Strategy.class_Strategy import LongTermStrategy
+#import yahoo_fin.stock_info as yfs
+#url = '/Users/hanseopark/Work/stock/' # in data
+#filename='nasdaq'
+#strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
+#df =strategy.get_CAP()
+#print(df)
 #df = strategy.get_Cash()
 #df = strategy.get_Debt()
 #df = strategy.get_addstats(True)
@@ -66,15 +66,34 @@ print(df)
 #df_stats = strategy.get_stats(True)
 #df_psr = strategy.get_PSR()
 
+import yahoo_fin.stock_info as yfs
+import pandas as pd
+from tqdm import tqdm
+
+#dow_list = yfs.tickers_sp500()
+dow_list = ['SOFI']
+dow_balsheets = {}
+
+for ticker in tqdm(dow_list):
+    sheets = yfs.get_balance_sheet(ticker)
+    dow_balsheets[ticker] = sheets
+
+print(dow_balsheets)
 
 
+recent_sheets = {ticker : sheet.iloc[:,:4] for ticker, sheet in dow_balsheets.items()}
+for ticker in recent_sheets.keys():
+    recent_sheets[ticker].columns = ["Recent", "Before1", "Before2", "Before3"]
+
+combined_balsheets = pd.concat(recent_sheets)
+combined_balsheets = combined_balsheets.reset_index()
+
+combined_balsheets.columns = ['Ticker', 'Breakdown', 'Recent', 'Before1', "Before2", "Before3"]
 
 
+print(combined_balsheets)
 
-
-
-
-
+combined_balsheets.to_csv('test.csv')
 
 
 

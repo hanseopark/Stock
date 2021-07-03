@@ -1,4 +1,3 @@
-from pandas_datareader import data as pdr
 import yahoo_fin.stock_info as yfs
 import pandas as pd
 from tqdm import tqdm
@@ -67,14 +66,12 @@ def main(stock_list):
     for ticker in tqdm(dow_list):
         try:
             # Getteing Summary
-            #basic = FinancialStatements(ticker).get_Basic()
             basic = yfs.get_stats_valuation(ticker)
             basic =basic.iloc[:,:2]
             basic.columns = ['Attribute', 'Recent']
             dow_stats[ticker] = basic
 
             # Getting additioanl stats
-            #add = FinancialStatements(ticker).get_Add()
             add = yfs.get_stats(ticker)
             add.columns = ['Attribute', 'Value']
             dow_addstats[ticker] = add
@@ -96,17 +93,17 @@ def main(stock_list):
 
     print('error symol: ', error_symbols)
 
-    recent_sheets = {ticker : sheet.iloc[:,:1] for ticker, sheet in dow_balsheets.items()}
+    recent_sheets = {ticker : sheet.iloc[:,:4] for ticker, sheet in dow_balsheets.items()}
     for ticker in recent_sheets.keys():
-        recent_sheets[ticker].columns = ["Recent"]
+        recent_sheets[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
 
-    recent_income_statements = {ticker : sheet.iloc[:,:1] for ticker,sheet in dow_income.items()}
+    recent_income_statements = {ticker : sheet.iloc[:,:4] for ticker,sheet in dow_income.items()}
     for ticker in recent_income_statements.keys():
-        recent_income_statements[ticker].columns = ["Recent"]
+        recent_income_statements[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
 
-    recent_cash_flows = {ticker : flow.iloc[:,:1] for ticker,flow in dow_flow.items()}
+    recent_cash_flows = {ticker : flow.iloc[:,:4] for ticker,flow in dow_flow.items()}
     for ticker in recent_cash_flows.keys():
-        recent_cash_flows[ticker].columns = ["Recent"]
+        recent_cash_flows[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
 
 
     combined_stats = pd.concat(dow_stats)
@@ -129,16 +126,17 @@ def main(stock_list):
 
     combined_stats.columns = ['Ticker', 'Attribute', 'Recent']
     combined_addstats.columns = ['Ticker', 'Attribute', 'Value']
-    combined_balsheets.columns = ['Ticker', 'Breakdown', 'Recent']
-    combined_income.columns = ["Ticker", "Breakdown", "Recent"]
-    combined_flow.columns = ["Ticker", "Breakdown", "Recent"]
-#    print(combined_stats)
+    combined_balsheets.columns = ['Ticker', 'Breakdown', 'Recent', 'Before_1', "Before_2", "Before_3"]
+    combined_income.columns = ["Ticker", "Breakdown", "Recent", "Before_1", "Before_2", "Before_3"]
+    combined_flow.columns = ["Ticker", "Breakdown", "Recent", "Before_1", "Before_2", "Before_3"]
+
+    print(combined_stats)
     print(combined_addstats)
     print(combined_balsheets)
     print(combined_income)
     print(combined_flow)
+
     list_stats = ['stats', 'addstats', 'balsheets', 'income', 'flow']
-    #url = '../data/FS_{0}_{1}'.format(filename,stats)
     for s in list_stats:
         url = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_{1}'.format(filename, s)
         if s == 'stats':
