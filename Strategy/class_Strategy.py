@@ -314,8 +314,8 @@ class LongTermStrategy:
         return df
 
 ###################################################################################################
-    ## For stats
-    def get_stats_element(self, etf_list =['AAPL']):
+## For stats
+def get_stats_element(self, etf_list =['AAPL']):
         df_stats = self.get_stats()
         self.etf_list = etf_list
         temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()

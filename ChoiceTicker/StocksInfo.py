@@ -93,17 +93,26 @@ def main(stock_list):
 
     print('error symol: ', error_symbols)
 
-    recent_sheets = {ticker : sheet.iloc[:,:4] for ticker, sheet in dow_balsheets.items()}
-    for ticker in recent_sheets.keys():
-        recent_sheets[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
-
-    recent_income_statements = {ticker : sheet.iloc[:,:4] for ticker,sheet in dow_income.items()}
-    for ticker in recent_income_statements.keys():
-        recent_income_statements[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
-
-    recent_cash_flows = {ticker : flow.iloc[:,:4] for ticker,flow in dow_flow.items()}
-    for ticker in recent_cash_flows.keys():
-        recent_cash_flows[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
+#    recent_sheets = {ticker : sheet.iloc[:,:4] for ticker, sheet in dow_balsheets.items()}
+    for ticker in dow_balsheets.keys():
+        try:
+            dow_balsheets[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
+        except:
+            error_symbols.append(ticker)
+#
+#    recent_income_statements = {ticker : sheet.iloc[:,:4] for ticker,sheet in dow_income.items()}
+    for ticker in dow_income.keys():
+        try:
+            dow_income[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
+        except:
+            error_symbols.append(ticker)
+#
+#    recent_cash_flows = {ticker : flow.iloc[:,:4] for ticker,flow in dow_flow.items()}
+    for ticker in dow_flow.keys():
+        try:
+            dow_flow[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
+        except:
+            error_symbols.append(ticker)
 
 
     combined_stats = pd.concat(dow_stats)
@@ -112,13 +121,13 @@ def main(stock_list):
     combined_addstats = pd.concat(dow_addstats)
     combined_addstats = combined_addstats.reset_index()
 
-    combined_balsheets = pd.concat(recent_sheets)
+    combined_balsheets = pd.concat(dow_balsheets)
     combined_balsheets = combined_balsheets.reset_index()
 
-    combined_income = pd.concat(recent_income_statements)
+    combined_income = pd.concat(dow_income)
     combined_income = combined_income.reset_index()
 
-    combined_flow = pd.concat(recent_cash_flows)
+    combined_flow = pd.concat(dow_flow)
     combined_flow = combined_flow.reset_index()
 
     del combined_stats['level_1']

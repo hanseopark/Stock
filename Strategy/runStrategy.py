@@ -153,7 +153,7 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
         #df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
         energy_list = ['APA', 'COG', 'COP', 'CVX', 'DVN', 'EOG', 'FANG', 'HAL', 'HES', 'KMI', 'MPC', 'MRO', 'NOV', 'OKE', 'OXY', 'PSX', 'PXD', 'SLB', 'VLO', 'WMB', 'XOM']
         port_list = energy_list
-        port_list = ['BP']
+        #port_list = ['BP']
         #port_list = ['AAPL', 'MSFT']
 
         try:
@@ -192,7 +192,7 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             #print(df)
             from pandas.api.types import is_numeric_dtype
             num_cols = [is_numeric_dtype(dtype) for dtype in df.dtypes]
-            #print(num_cols)
+            print(num_cols)
 
             # Split data and test For correlation
             from sklearn.model_selection import train_test_split
@@ -250,16 +250,11 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             #y_df = df['Recent_price']
             #df = df.drop(['Recent_price'], axis=1)
             nulltotal = df.isnull().sum().sort_values(ascending=False)
-            #print(nulltotal)
             nullpercent = ( df.isnull().sum() / len(df) ).sort_values(ascending=False)
-            #print(nullpercent)
             nullpoint = pd.concat([nulltotal, nullpercent], axis=1, keys=['Total number of null', 'Percent of null'])
-            #print(nullpoint)
             remove_cols = nullpercent[nullpercent >= 0.1].keys()
             df = df.drop(remove_cols, axis=1)
-            #print(df.isnull().sum().max())
             newtotal = df.isnull().sum().sort_values(ascending=False)
-            #print(newtotal)
 
             # filling the numeric data
             numeric_missed = newtotal.index
