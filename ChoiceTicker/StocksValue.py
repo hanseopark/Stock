@@ -34,22 +34,22 @@ def main(stock_list, start, end):
     error_symbols = []
     for ticker in tqdm(etf_list):
         try:
-            df = pdr.DataReader(ticker,'yahoo', start_day, today)
+            #df = pdr.DataReader(ticker,'yahoo', start_day, today)
             df_recent.loc[ticker, 'Recent_price'] = yfs.get_live_price(ticker)
-            etf_values[ticker] = df
+            #etf_values[ticker] = df
         except:
             error_symbols.append(ticker)
 
-    combined_value = pd.concat(etf_values)
-    combined_value = combined_value.reset_index()
-    combined_value= combined_value.rename(columns={'level_0': 'Ticker'})
-
-    print(combined_value)
-    print(df_recent)
-
-    url = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_Value'.format(filename)
-    combined_value.to_json(url+'.json')
-    combined_value.to_csv(url+'.csv')
+#    combined_value = pd.concat(etf_values)
+#    combined_value = combined_value.reset_index()
+#    combined_value= combined_value.rename(columns={'level_0': 'Ticker'})
+#
+#    print(combined_value)
+#    print(df_recent)
+#
+#    url = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_Value'.format(filename)
+#    combined_value.to_json(url+'.json')
+#    combined_value.to_csv(url+'.csv')
 
     url_recent = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_Recent_Value'.format(filename)
     df_recent.to_json(url_recent+'.json')

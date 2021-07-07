@@ -157,16 +157,16 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
     elif stats == 'ML':
         url = '/Users/hanseopark/Work/stock'
-        #df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
         energy_list = ['APA', 'COG', 'COP', 'CVX', 'DVN', 'EOG', 'FANG', 'HAL', 'HES', 'KMI', 'MPC', 'MRO', 'NOV', 'OKE', 'OXY', 'PSX', 'PXD', 'SLB', 'VLO', 'WMB', 'XOM']
         port_list = energy_list
         #port_list = ['BP']
-        #port_list = ['AAPL', 'MSFT']
+        port_list = ['AAPL']
+        print('In my portfolio: ', port_list)
 
-        try:
-            df_price = pd.read_json(url+'/data_origin/FS_{0}_Recent_Value.json'.format(filename))
-        except:
-            df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
+#        try:
+#            df_price = pd.read_json(url+'/data_origin/FS_{0}_Recent_Value.json'.format(filename))
+#        except:
+#            df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
 
         SpecialStatements = True
 
@@ -195,11 +195,12 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 #            print(df_income)
 #            print(df_flow)
 
-            df = pd.concat([df_stats, df_addstats, df_balsheets, df_income, df_flow, df_price], axis=1)
+            #df = pd.concat([df_stats, df_addstats, df_balsheets, df_income, df_flow, df_price], axis=1)
+            df = pd.concat([df_stats, df_addstats, df_balsheets, df_income, df_flow], axis=1)
             #print(df)
             from pandas.api.types import is_numeric_dtype
             num_cols = [is_numeric_dtype(dtype) for dtype in df.dtypes]
-            print(num_cols)
+            #print(num_cols)
 
             # Split data and test For correlation
             from sklearn.model_selection import train_test_split
@@ -207,7 +208,7 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
             # Correlation for features
             corrmat = train_df_corr.corr()
-            top_corr_features = corrmat.index[abs(corrmat['Recent_price'])>0]
+            top_corr_features = corrmat.index[abs(corrmat['marketCap'])>0.2]
             #print(top_corr_features)
 
             #print(corrmat['Recent_price'].sort_values(ascending=False))
@@ -226,6 +227,9 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             ####################
             ### Remove index ###
             ####################
+            print("###### NAN #######")
+            print('Before removing index: ', len(df))
+            df = df[df['marketCap'].notna()]
             df_index_null = pd.DataFrame(columns=['TotalNull', 'PercentOfNull'])
             for ticker in df.index:
                 temp_df = df.loc[ticker,:]
@@ -233,45 +237,35 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
                 percent_count_null = count_null/len(temp_df)
                 df_index_null.loc[ticker, 'TotalNull'] = count_null
                 df_index_null.loc[ticker, 'PercentOfNull'] = percent_count_null
-            #print(df_index_null)
             remove_index = df_index_null[df_index_null['PercentOfNull']>0.5].index.tolist()
-            #print(remove_index)
-            print(len(remove_index))
+            #print(len(remove_index))
+
+            ## For portlist
             for tic in port_list:
-                print(tic)
                 if tic in remove_index:
                     remove_index.remove(tic)
-                    print('remove')
-                    #remove_index = remove_index.remove(tic)
-            #print(remove_index)
-            print(len(remove_index))
-            #print(remove_index)
             df = df.drop(remove_index, axis=0)
-            #print(df)
+            print('After removing index: ', len(df))
 
             ######################
             ### Remove columns ###
             ######################
+            print('Before removing columns: ', len(df.columns))
 
-            print("###### NAN #######")
-            #y_df = df['Recent_price']
-            #df = df.drop(['Recent_price'], axis=1)
             nulltotal = df.isnull().sum().sort_values(ascending=False)
             nullpercent = ( df.isnull().sum() / len(df) ).sort_values(ascending=False)
             nullpoint = pd.concat([nulltotal, nullpercent], axis=1, keys=['Total number of null', 'Percent of null'])
-            remove_cols = nullpercent[nullpercent >= 0.1].keys()
+            remove_cols = nullpercent[nullpercent >= 0.5].keys()
             df = df.drop(remove_cols, axis=1)
             newtotal = df.isnull().sum().sort_values(ascending=False)
 
-            # filling the numeric data
+            print('After removing columns: ', len(df.columns))
+
+            # Filling the numeric data
             numeric_missed = newtotal.index
             #numeric_missed = ['minorityInterest', 'PER', 'ROE(%)', 'PBR', 'DividendsPaid']
             for feature in numeric_missed:
                 df[feature] = df[feature].fillna(0)
-
-            #print('Re check')
-            #print(df.isnull().sum().max())
-
 
             ## Feature Engineering
             from scipy.stats import norm, skew
@@ -289,15 +283,16 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             print("********"*10)
             print(df)
             print("********"*10)
-
+            print(df['marketCap'].copy())
 
             # Split train and test for ML
 
-                # Taget setting
+            # Taget setting
             #y_df = df['Recent_price']
             #df = df.drop(['Recent_price'], axis=1)
             y_df = df['marketCap']
-            df = df.drop(['Recent_price', 'marketCap'], axis=1)
+            #df = df.drop(['Recent_price', 'marketCap'], axis=1)
+            df = df.drop(['marketCap'], axis=1)
 
             y_df = y_df.to_frame()
             #y_train, y_test, x_train, x_test = train_test_split(y_df, df, test_size=0.2)

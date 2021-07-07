@@ -10,6 +10,33 @@ import json
 
 def main():
 
+    ## sp500
+    url_sp500 = '/Users/hanseopark/Work/stock/data_origin/FS_sp500_'
+    # Recent Price
+#    url_sp500_price = url_sp500+'Recent_Value.json'
+#    df_sp500_price = pd.read_json(url_sp500_price)
+
+    # Stats
+    url_sp500_stats = url_sp500+'stats.json'
+    df_sp500_stats = pd.read_json(url_sp500_stats)
+
+    # Addstats
+    url_sp500_addstats = url_sp500+'addstats.json'
+    df_sp500_addstats = pd.read_json(url_sp500_addstats)
+
+    # Balsheets
+    url_sp500_balsheets = url_sp500+'balsheets.json'
+    df_sp500_balsheets = pd.read_json(url_sp500_balsheets)
+
+    # Income
+    url_sp500_income = url_sp500+'income.json'
+    df_sp500_income = pd.read_json(url_sp500_income)
+
+    # Cash flow
+    url_sp500_flow = url_sp500+'flow.json'
+    df_sp500_flow = pd.read_json(url_sp500_flow)
+
+
     ## Nasdaq
     url_nasdaq = '/Users/hanseopark/Work/stock/data_origin/FS_nasdaq_'
     # Recent Price
@@ -62,7 +89,7 @@ def main():
     url_other_flow = url_other+'flow.json'
     df_other_flow = pd.read_json(url_other_flow)
 
-    filename = 'other'
+    filename = 'sp500'
     #list_stats = ['Recent_Value', 'stats', 'addstats', 'balsheets', 'income', 'flow']
     list_stats = ['stats', 'addstats', 'balsheets', 'income', 'flow']
     #list_stats = ['stats']
@@ -87,8 +114,8 @@ def main():
             df = df_nasdaq_flow
             df = df.rename(columns={'level_0': 'Ticker'})
         print(df)
-#        df.to_json(url+'.json')
-#        df.to_csv(url+'.csv')
+        df.to_json(url+'.json')
+        df.to_csv(url+'.csv')
 
 if __name__ == '__main__':
     main()
