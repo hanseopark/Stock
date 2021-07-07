@@ -23,6 +23,7 @@ def main(stock_list):
     print('*'*100)
     print('balance sheets')
     print(aapl_sheet)
+    print(len(aapl_sheet.columns))
     print('*'*100)
     print('income statements')
     print(aapl_income)
@@ -90,54 +91,48 @@ def main(stock_list):
 
         except:
             error_symbols.append(ticker)
+            print('Error ticker: ', ticker)
 
     print('error symol: ', error_symbols)
 
-#    recent_sheets = {ticker : sheet.iloc[:,:4] for ticker, sheet in dow_balsheets.items()}
     for ticker in dow_balsheets.keys():
-        try:
-            dow_balsheets[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
-        except:
-            error_symbols.append(ticker)
-#
-#    recent_income_statements = {ticker : sheet.iloc[:,:4] for ticker,sheet in dow_income.items()}
+        leng = len(dow_balsheets[ticker].columns)
+        dow_balsheets[ticker].columns = ['Before_'+str(i) for i in range(0,leng)]
+        dow_balsheets[ticker] = dow_balsheets[ticker].rename(columns={'Before_0': 'Recent'})
+
     for ticker in dow_income.keys():
-        try:
-            dow_income[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
-        except:
-            error_symbols.append(ticker)
-#
-#    recent_cash_flows = {ticker : flow.iloc[:,:4] for ticker,flow in dow_flow.items()}
+        leng = len(dow_income[ticker].columns)
+        dow_income[ticker].columns = ['Before_'+str(i) for i in range(0,leng)]
+        dow_income[ticker] = dow_income[ticker].rename(columns={'Before_0': 'Recent'})
+
     for ticker in dow_flow.keys():
-        try:
-            dow_flow[ticker].columns = ["Recent", "Before_1", "Before_2", "Before_3"]
-        except:
-            error_symbols.append(ticker)
+        leng = len(dow_flow[ticker].columns)
+        dow_flow[ticker].columns = ['Before_'+str(i) for i in range(0,leng)]
+        dow_flow[ticker] = dow_flow[ticker].rename(columns={'Before_0': 'Recent'})
 
 
     combined_stats = pd.concat(dow_stats)
     combined_stats = combined_stats.reset_index()
+    combined_stats = combined_stats.rename(columns={'level_0': 'Ticker'})
 
     combined_addstats = pd.concat(dow_addstats)
     combined_addstats = combined_addstats.reset_index()
+    combined_addstats = combined_addstats.rename(columns={'level_0': 'Ticker'})
 
     combined_balsheets = pd.concat(dow_balsheets)
     combined_balsheets = combined_balsheets.reset_index()
+    combined_balsheets = combined_balsheets.rename(columns={'level_0': 'Ticker'})
 
     combined_income = pd.concat(dow_income)
     combined_income = combined_income.reset_index()
+    combined_income = combined_income.rename(columns={'level_0': 'Ticker'})
 
     combined_flow = pd.concat(dow_flow)
     combined_flow = combined_flow.reset_index()
+    combined_flow = combined_flow.rename(columns={'level_0': 'Ticker'})
 
     del combined_stats['level_1']
     del combined_addstats['level_1']
-
-    combined_stats.columns = ['Ticker', 'Attribute', 'Recent']
-    combined_addstats.columns = ['Ticker', 'Attribute', 'Value']
-    combined_balsheets.columns = ['Ticker', 'Breakdown', 'Recent', 'Before_1', "Before_2", "Before_3"]
-    combined_income.columns = ["Ticker", "Breakdown", "Recent", "Before_1", "Before_2", "Before_3"]
-    combined_flow.columns = ["Ticker", "Breakdown", "Recent", "Before_1", "Before_2", "Before_3"]
 
     print(combined_stats)
     print(combined_addstats)

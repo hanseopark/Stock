@@ -62,41 +62,33 @@ def main():
     url_other_flow = url_other+'flow.json'
     df_other_flow = pd.read_json(url_other_flow)
 
-    filename = 'all'
+    filename = 'other'
     #list_stats = ['Recent_Value', 'stats', 'addstats', 'balsheets', 'income', 'flow']
-    list_stats = ['stats']
+    list_stats = ['stats', 'addstats', 'balsheets', 'income', 'flow']
+    #list_stats = ['stats']
     for s in list_stats:
         url = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_{1}'.format(filename, s)
         if s == 'Recemt_Value':
-            df = pd.concat([df_nasdaq_price, df_other_price], join='outer')
-            df = df.reset_index()
+            df = df_nasdaq_price
+            #df = df.rename(columns={'level_0': 'Ticker'})
         if s == 'stats':
-            df = pd.concat([df_nasdaq_stats, df_other_stats])
-            df = df.reset_index()
+            df = df_nasdaq_stats
+            df = df.rename(columns={'level_0': 'Ticker'})
         elif s == 'addstats':
-            df = pd.concat([df_nasdaq_stats, df_other_stats])
-            df = df.reset_index()
+            df = df_nasdaq_addstats
+            df = df.rename(columns={'level_0': 'Ticker'})
         elif s == 'balsheets':
-            df = pd.concat([df_nasdaq_stats, df_other_stats])
-            df = df.reset_index()
+            df = df_nasdaq_balsheets
+            df = df.rename(columns={'level_0': 'Ticker'})
         elif s == 'income':
-            df = pd.concat([df_nasdaq_stats, df_other_stats])
-            df = df.reset_index()
+            df = df_nasdaq_income
+            df = df.rename(columns={'level_0': 'Ticker'})
         elif s == 'flow':
-            df = pd.concat([df_nasdaq_stats, df_other_stats])
-            df = df.reset_index()
-        print(df_nasdaq_stats)
-        print(df_other_stats)
+            df = df_nasdaq_flow
+            df = df.rename(columns={'level_0': 'Ticker'})
         print(df)
-        df.to_json(url+'.json')
-        df.to_csv(url+'.csv')
-
-    url = '/Users/hanseopark/Work/stock/data_ForTrading/all_ticker.json'
-    df_tic = pd.DataFrame(columns=['Ticker'])
-    df_tic['Ticker'] = df['Ticker']
-    print(df_tic)
-    df.to_json(url)
-
+#        df.to_json(url+'.json')
+#        df.to_csv(url+'.csv')
 
 if __name__ == '__main__':
     main()

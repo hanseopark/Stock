@@ -41,15 +41,14 @@ from tqdm import tqdm
 #print(now.strftime("%d"))
 #print(int(now.strftime("%d")))
 
-from Strategy.class_Strategy import LongTermStrategy
 #import yahoo_fin.stock_info as yfs
-url = '/Users/hanseopark/Work/stock/' # in data
-filename='sp500'
-strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
-#df =strategy.get_TA()
-df_2 = strategy.get_balsheets_element()
-#print(df)
-print(df_2)
+#url = '/Users/hanseopark/Work/stock/' # in data
+#filename='sp500'
+#strategy = LongTermStrategy(url, filename, Offline= False) # Select Long term strategy
+##df =strategy.get_TA()
+#df_2 = strategy.get_balsheets_element()
+##print(df)
+#print(df_2)
 #print(df)
 #df = strategy.get_Cash()
 #df = strategy.get_Debt()
@@ -109,7 +108,16 @@ print(df_2)
 #
 #combined_balsheets.to_csv('test.csv')
 
+import pandas as pd
+#df_list = pd.read_html('https://finance.yahoo.com/world-indices/')
+#print(df_list[0])
 
+df1 = pd.DataFrame({'a':[1,2,3],'x':[4,5,6],'y':[7,8,9]})
+df2 = pd.DataFrame({'b':[10,11,12],'x':[13,14,15],'y':[16,17,18]})
+
+df_mer = pd.concat([df1, df2])
+
+print(df_mer)
 
 
 

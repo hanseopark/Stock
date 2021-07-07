@@ -315,7 +315,7 @@ class LongTermStrategy:
 
 ###################################################################################################
 ## For stats
-def get_stats_element(self, etf_list =['AAPL']):
+    def get_stats_element(self, etf_list =['AAPL']):
         df_stats = self.get_stats()
         self.etf_list = etf_list
         temp_df = df_stats[df_stats.Ticker == etf_list[0]].copy()
@@ -348,9 +348,6 @@ def get_stats_element(self, etf_list =['AAPL']):
             df_temp[col] = pd.to_numeric(df_per[col], errors='coerce')
 
         return df_temp.astype(float)
-
-
-        #return df_per.astype(float)
 
     def get_PSR(self):
         df = self.get_stats()

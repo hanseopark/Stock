@@ -29,6 +29,13 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
     elif stock_list == 'nasdaq':
         filename = 'nasdaq'
         dow_list = yfs.tickers_nasdaq()
+    elif stock_list == 'all':
+        filename = 'all'
+        url = '/Users/hanseopark/Work/stock/data_ForTrading/all_ticker.json'
+        temp_pd = pd.read_json(url)
+        temp_pd = temp_pd['Ticker']
+        dow_list = temp_pd.values.tolist()
+
     elif stock_list == 'other':
         filename = 'other'
         dow_list = yfs.tickers_other()
@@ -421,7 +428,7 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
 if __name__ == '__main__':
     from class_Strategy import LongTermStrategy, TrendStrategy, NLPStrategy
-    s_list= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
+    s_list= input("Choice of stock's list (dow, sp500, nasdaq, other, selected, all): ")
     statements = input('Choice statement (PER, PBR, Trend, ML, NLP): ')
     if (statements == 'PER' or statements == "PBR"):
         s2 = input('Set {} point(10, 20, 30): '.format(statements))
