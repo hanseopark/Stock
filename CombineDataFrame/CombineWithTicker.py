@@ -93,13 +93,14 @@ def main():
             del df['index']
         print(df)
         print(df.dtypes)
-        df.to_json(url+'.json')
-        df.to_csv(url+'.csv')
+#        df.to_json(url+'.json')
+#        df.to_csv(url+'.csv')
 
-#    url = '/Users/hanseopark/Work/stock/data_ForTrading/all_ticker.json'
-#    df_tic = pd.DataFrame(columns=['Ticker'])
-#    df_tic['Ticker'] = df['Ticker']
-#    print(df_tic)
+    url = '/Users/hanseopark/Work/stock/data_ForTrading/all_ticker.json'
+    df_tic = pd.DataFrame(columns=['Ticker'])
+    df_tic['Ticker'] = df['Ticker']
+    print('ticker')
+    print(df_tic)
 #    df.to_json(url)
 
 if __name__ == '__main__':

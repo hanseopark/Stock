@@ -31,10 +31,9 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
         dow_list = yfs.tickers_nasdaq()
     elif stock_list == 'all':
         filename = 'all'
-        url = '/Users/hanseopark/Work/stock/data_ForTrading/all_ticker.json'
-        temp_pd = pd.read_json(url)
-        temp_pd = temp_pd['Ticker']
-        dow_list = temp_pd.values.tolist()
+        dow_list_1 = yfs.tickers_nasdaq()
+        dow_list_2 = yfs.tickers_other()
+        dow_list = dow_list_1 + dow_list_2
 
     elif stock_list == 'other':
         filename = 'other'
@@ -48,6 +47,7 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
     print('*'*100)
     print(dow_list)
+    print(len(dow_list))
     print('*'*100)
 
     url = '/Users/hanseopark/Work/stock/' # in data
@@ -68,12 +68,13 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
         #strategy = NLPStrategy(url, filename, Offline= False) # Select Long term strategy
 
     # Perform strategy and save
-    url_threshold = url+'/data_origin/table{0}_{1}_{2}'.format(stats, filename,Limit)
+    url_threshold = url+'/data_origin/table{0}_{1}_{2}'.format(stats, filename, Limit)
     if stats == 'PER':
         df_per = strategy.LowPER(threshold = Limit)
         #print(df_per)
         df_per.to_json(url_threshold+'.json')
         df_per.to_csv(url_threshold+'.csv')
+        print(df_per)
 
         return df_per
 
@@ -82,6 +83,8 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
         #print(df_pbr)
         df_pbr.to_json(url_threshold+'.json')
         df_pbr.to_csv(url_threshold+'.csv')
+
+        print(df_pbr)
 
         return df_pbr
 
@@ -157,16 +160,24 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
     elif stats == 'ML':
         url = '/Users/hanseopark/Work/stock'
-        energy_list = ['APA', 'COG', 'COP', 'CVX', 'DVN', 'EOG', 'FANG', 'HAL', 'HES', 'KMI', 'MPC', 'MRO', 'NOV', 'OKE', 'OXY', 'PSX', 'PXD', 'SLB', 'VLO', 'WMB', 'XOM']
-        port_list = energy_list
-        #port_list = ['BP']
-        port_list = ['AAPL']
-        print('In my portfolio: ', port_list)
+        print('')
+        port_input = input('set portpolio: (lowper, energy, mine) ')
+        if port_input == 'energy':
+            energy_list = ['APA', 'COG', 'COP', 'CVX', 'DVN', 'EOG', 'FANG', 'HAL', 'HES', 'KMI', 'MPC', 'MRO', 'NOV', 'OKE', 'OXY', 'PSX', 'PXD', 'SLB', 'VLO', 'WMB', 'XOM']
+            port_list = energy_list
+        elif port_input == 'lowper':
+            df_low_per = main(stock_list=filename, stats = 'PER', Limit = 5)
+            #print(df_low_per)
+            lowper_list = df_low_per.index.values.tolist()
+            port_list = lowper_list
+        elif port_input == 'mine':
+            my_list = ['AAPL', 'NFLX', 'TSM', 'ZIM', 'BP', 'MRO']
+            port_list = my_list
+        else:
+            my_list = ['AAPL', 'NFLX', 'TSM', 'ZIM', 'BP', 'MRO']
+            port_list = my_list
 
-#        try:
-#            df_price = pd.read_json(url+'/data_origin/FS_{0}_Recent_Value.json'.format(filename))
-#        except:
-#            df_price = strategy.get_price_data(etf_list = dow_list, OnlyRecent=True)
+        print('In my portfolio: ', port_list)
 
         SpecialStatements = True
 
@@ -195,12 +206,10 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 #            print(df_income)
 #            print(df_flow)
 
-            #df = pd.concat([df_stats, df_addstats, df_balsheets, df_income, df_flow, df_price], axis=1)
             df = pd.concat([df_stats, df_addstats, df_balsheets, df_income, df_flow], axis=1)
-            #print(df)
+            print(df)
             from pandas.api.types import is_numeric_dtype
             num_cols = [is_numeric_dtype(dtype) for dtype in df.dtypes]
-            #print(num_cols)
 
             # Split data and test For correlation
             from sklearn.model_selection import train_test_split
@@ -208,10 +217,8 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
             # Correlation for features
             corrmat = train_df_corr.corr()
-            top_corr_features = corrmat.index[abs(corrmat['marketCap'])>0.2]
+            top_corr_features = corrmat.index[abs(corrmat['marketCap'])>0]
             #print(top_corr_features)
-
-            #print(corrmat['Recent_price'].sort_values(ascending=False))
 
             # Heatmap
             plt.figure(figsize=(13,10))
@@ -219,7 +226,6 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
 
             plt.savefig(url+'/Model/ML/corrHeatmap_{0}.eps'.format(filename))
             #plt.show()
-
 
             # How to considef NaN data
             # We need how to take the NaN data. First of all, we remove the NaN column over ratio of 0.5.
@@ -241,6 +247,13 @@ def main(symbol = 'AAPL', stock_list=['dow'], stats = 'PER', Limit = 10):
             #print(len(remove_index))
 
             ## For portlist
+            unequal_in_index = [x for x in port_list if x not in df.index.values.tolist()]
+            print(unequal_in_index)
+            for l in unequal_in_index:
+                port_list.remove(l)
+            if unequal_in_index in df.index.tolist():
+                print('exist')
+            #df = df.drop(index = unequal_in_index)
             for tic in port_list:
                 if tic in remove_index:
                     remove_index.remove(tic)

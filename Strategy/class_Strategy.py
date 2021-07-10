@@ -330,10 +330,6 @@ class LongTermStrategy:
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
 
-        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_stasts_element'
-        df.astype(float).to_json(url_stats+'.json')
-        df.astype(float).to_csv(url_stats+'.csv')
-
         return df
 
     def get_PER(self):
@@ -425,9 +421,6 @@ class LongTermStrategy:
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Value']
 
-        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_addstatsa_element'
-        df.astype(float).to_json(url_stats+'.json')
-        df.astype(float).to_csv(url_stats+'.csv')
 
         return df
 
@@ -530,9 +523,6 @@ class LongTermStrategy:
                 temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
-        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_balsheets_element'
-        df.astype(float).to_json(url_stats+'.json')
-        df.astype(float).to_csv(url_stats+'.csv')
 
         return df.astype(float)
 
@@ -554,7 +544,6 @@ class LongTermStrategy:
         list_df = temp_df['Breakdown'].to_list()
         df = pd.DataFrame(columns=list_df, index = self.etf_list)
         print('For income statements')
-        error_symbols = []
         for ticker in tqdm(self.etf_list):
             temp_df = df_stats[df_stats.Ticker == ticker].copy()
             list_df = temp_df['Breakdown'].to_list()
@@ -562,12 +551,6 @@ class LongTermStrategy:
                 temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
-            error_symbols.append(ticker)
-
-        print('Error symbol: ', error_symbols)
-        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_income_element'
-        df.astype(float).to_json(url_stats+'.json')
-        df.astype(float).to_csv(url_stats+'.csv')
 
         return df.astype(float)
 
@@ -596,9 +579,6 @@ class LongTermStrategy:
                 temp_df_stats = df_stats[df_stats.Breakdown == att].copy()
                 temp_df_stats = temp_df_stats.set_index('Ticker')
                 df.loc[ticker, att] = temp_df_stats.loc[ticker, 'Recent']
-        url_stats = self.url+'/data_preprocessing/'+self.etfname+'_flow_element'
-        df.astype(float).to_json(url_stats+'.json')
-        df.astype(float).to_csv(url_stats+'.csv')
 
         return df.astype(float)
 
@@ -637,10 +617,18 @@ class LongTermStrategy:
 
     def LowPBR(self, threshold=10):
         df = self.get_PBR()
-        df = df.sort_values(by='PBR')
-        df = df.head(threshold)
+        df_pbr = pd.DataFrame({'PBR': []})
+        error_symbols = []
+        for ticker in tqdm(df.index):
+            pbr = df.loc[ticker, 'PBR']
+            try:
+                if 0 < pbr < threshold:
+                    df_pbr.loc[ticker, 'PBR'] = pbr
+            except:
+                error_symbols.append(ticker)
+        df_pbr = df_pbr.sort_values(by='PBR')
 
-        return df
+        return df_pbr
 
 #    class MLStrategy:
 #        def __init__(self, url, etfname):
