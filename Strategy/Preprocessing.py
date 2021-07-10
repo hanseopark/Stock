@@ -160,12 +160,12 @@ def main(url='', index_list = ['AAPL'], index_name = 'dow', EACH = True, ALL = T
 
 if __name__=='__main__':
     from class_Strategy import LongTermStrategy
-    with open('../config/config.json', 'r') as f:
+    with open('config/config.json', 'r') as f:
         config = json.load(f)
     root_url = config['root_dir']
     dow_list = yfs.tickers_dow()
     filename = ''
-    s= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
+    s= input("Choice of stock's list (dow, sp500, nasdaq, other, all, selected): ")
     if s == 'dow':
         dow_list = yfs.tickers_dow()
         filename = 'dow'
@@ -178,6 +178,11 @@ if __name__=='__main__':
     elif s == 'other':
         filename = 'other'
         dow_list = yfs.tickers_other()
+    elif s == 'all':
+        filename = 'all'
+        dow_list_1 = yfs.tickers_nasdaq()
+        dow_list_2 = yfs.tickers_other()
+        dow_list = dow_list_1 + dow_list_2
     elif s == 'selected':
         filename = 'selected'
         url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
