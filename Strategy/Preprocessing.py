@@ -1,13 +1,6 @@
-import numpy as np
 import pandas as pd
 import pandas_datareader as pdr
-import yfinance as yf
 import yahoo_fin.stock_info as yfs
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-from tqdm import tqdm
 
 import json
 
@@ -185,7 +178,7 @@ if __name__=='__main__':
         dow_list = dow_list_1 + dow_list_2
     elif s == 'selected':
         filename = 'selected'
-        url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
+        url = root_url+'/data_ForTrading/selected_ticker.json'
         temp_pd = pd.read_json(url)
         temp_pd = temp_pd['Ticker']
         dow_list = temp_pd.values.tolist()

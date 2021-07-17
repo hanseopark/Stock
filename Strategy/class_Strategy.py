@@ -637,54 +637,29 @@ class LongTermStrategy:
 
 
 class TrendStrategy:
-    def __init__(self, symbol, index, start, end, keywords):
+    def __init__(self, symbol, start, end):
         self.symbol = symbol
         self.start = start
         self.end = end
-        self.keywords = keywords
-        self.index = index
 
-    def get_price_data(self, nomalization = False, DoSymbol = False):
-        if DoSymbol == True:
-            df_price = pdr.DataReader(self.symbol, 'yahoo',self.start, self.end)
-            if nomalization == True:
-                df_price['Adj Close'] =df_price['Adj Close']/df_price['Adj Close'].max()
-            return df_price['Adj Close']
-        else:
-            df_price = pdr.DataReader(self.index, 'yahoo',self.start, self.end)
-            if nomalization == True:
-                df_price =df_price/df_price.max()
-            return df_price
+    def get_price_data(self, nomalization = False):
+        df_price = pdr.DataReader(self.symbol, 'yahoo',self.start, self.end)
+        if nomalization == True:
+            df_price['Adj Close'] =df_price['Adj Close']/df_price['Adj Close'].max()
+        return df_price['Adj Close']
 
-    def get_trend_data(self, DoSymbol = False):
+    def get_trend_data(self):
         # it is needed for me to download rating each stock as daily comparing stock's price
-        if DoSymbol == True:
-            list_temp = [self.symbol]
-            pytrend = TrendReq(hl='en-US', tz=360) # this package is unoffical
-            #pytrend.build_payload(kw_list=list_temp, timeframe='today 12-m')
+        list_temp = [self.symbol]
+        pytrend = TrendReq(hl='en-US', tz=360) # this package is unoffical
+        #pytrend.build_payload(kw_list=list_temp, timeframe='today 12-m')
 
-            #df = pytrend.interest_over_time()
-            df = dailydata.get_daily_data(self.symbol, int(self.start.year), int(self.start.month), int(self.end.year), int(self.end.month))
+        #df = pytrend.interest_over_time()
+        df = dailydata.get_daily_data(self.symbol, int(self.start.year), int(self.start.month), int(self.end.year), int(self.end.month))
 
-            df[self.symbol] = df[self.symbol]/df[self.symbol].max()
+        df[self.symbol] = df[self.symbol]/df[self.symbol].max()
 
-            return df[self.symbol]
-
-        else:
-            pytrend = TrendReq(hl='en-US', tz=360) # this package is unoffical
-            df = pd.DataFrame()
-            error_symbol = []
-            for ticker in tqdm(self.keywords):
-                temp_list = []
-                temp_list.append(ticker)
-                try:
-                    pytrend.build_payload(kw_list=temp_list, timeframe='today 12-m')
-                    df_res = pytrend.interest_over_time()
-                    df[ticker] = df_res.loc[:, ticker]
-                    df[ticker] = df[ticker]/df[ticker].max()
-                except:
-                    error_symbol.append(ticker)
-            return df
+        return df[self.symbol]
 
 class NLPStrategy:
     def __init__(self, url, etfname, Offline = False):

@@ -54,6 +54,7 @@ def main(index_name, start, end, run_yfs=False, run_pdr=True):
         except:
             error_symbols.append(ticker)
     print('Error: ', error_symbols)
+            df_recent.loc[ticker, 'Recent_price'] = yfs.get_live_price(ticker)
 
     if run_pdr:
         combined_value = pd.concat(etf_values)

@@ -154,9 +154,9 @@ if screen == 'Select':
                 st.write('Null')
 
 if screen == 'Google Trend':
-    strategy_Trend = TrendStrategy(symbol, index = dow_list, start=start_day, end=now_day, keywords=dow_list)
-    df_price = strategy_Trend.get_price_data(nomalization = True, DoSymbol =True)
-    df_trend_symbol = strategy_Trend.get_trend_data(DoSymbol = True)
+    strategy_Trend = TrendStrategy(symbol, start=start_day, end=now_day)
+    df_price = strategy_Trend.get_price_data(nomalization = True)
+    df_trend_symbol = strategy_Trend.get_trend_data()
     df = pd.concat([df_price, df_trend_symbol], axis=1)
 
     st.line_chart(df)
