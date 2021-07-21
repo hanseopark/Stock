@@ -1,8 +1,13 @@
 import yahoo_fin.stock_info as yfs
 import pandas as pd
-from tqdm import tqdm
 
-def main(index_list, index_name):
+from tqdm import tqdm
+import json
+
+def main(url, index_list, index_name):
+
+    ## Configuration directory url
+    url_data = url+'data_origin/'
 
     # For check the table of one ticker like aapl
     aapl_quote = yfs.get_quote_table('aapl')
@@ -119,7 +124,7 @@ def main(index_list, index_name):
 
     list_stats = ['stats', 'addstats', 'balsheets', 'income', 'flow']
     for s in list_stats:
-        url = '/Users/hanseopark/Work/stock/data_origin/FS_{0}_{1}'.format(index_name, s)
+        url_FS = url_data+'FS_{0}_{1}'.format(index_name, s)
         if s == 'stats':
             df = combined_stats
         elif s == 'addstats':
@@ -130,10 +135,14 @@ def main(index_list, index_name):
             df = combined_income
         elif s == 'flow':
             df = combined_flow
-        df.to_json(url+'.json')
-        df.to_csv(url+'.csv')
+        df.to_json(url_FS+'.json')
+        df.to_csv(url_FS+'.csv')
 
 if __name__ == '__main__':
+    with open('../config/config.json', 'r') as f:
+        config = json.load(f)
+    root_url = config['root_dir']
+
     filename = input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
 
     # Get list of Dow tickers
@@ -147,14 +156,14 @@ if __name__ == '__main__':
     elif filename == 'other':
         dow_list = yfs.tickers_other()
     elif filename == 'selected':
-        url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
+        url = root_url+'/data_ForTrading/selected_ticker.json'
         temp_pd = pd.read_json(url)
         temp_pd = temp_pd['Ticker']
         dow_list = temp_pd.values.tolist()
 
     print(dow_list)
 
-    main(index_list = dow_list, index_name = filename)
+    main(url=root_url, index_list = dow_list, index_name = filename)
 
 else:
     pass

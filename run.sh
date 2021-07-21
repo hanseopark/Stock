@@ -7,4 +7,4 @@
 
 echo "sp500" | python ChoiceTicker/StocksValue.py
 echo "sp500" | python ChoiceTicker/StocksInfo.py
-echo "sp500" | python Strategy/Preprocessing.py
+echo "sp500" | python ChoiceTicker/Preprocessing.py

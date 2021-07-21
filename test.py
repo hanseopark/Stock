@@ -106,10 +106,7 @@ from tqdm import tqdm
 #
 #print(combined_balsheets)
 #
-#combined_balsheets.to_csv('test.csv')
-
-import pandas as pd
-#df_list = pd.read_html('https://finance.yahoo.com/world-indices/')
+#combined_balsheets.to_csv('test.read_html('https://finance.yahoo.com/world-indices/')
 #print(df_list[0])
 
 df1 = pd.DataFrame({'a':[1,2,3],'x':[4,5,6],'y':[7,8,9]})

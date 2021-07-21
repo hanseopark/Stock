@@ -11,59 +11,44 @@ import json
 import datetime
 
 def main(url = '', index_list = ['AAPL'], index_name = 'dow', portfolio = ['AAPL'], stats = 'PER', Limit = 10):
-    #######################################################
-    # Select strategy for situation
-    if (stats == 'PER' or stats == "PBR"):
-        strategy = LongTermStrategy(url, index_name) # Select Long term strategy
-    elif stats == 'NLP':
-        strategy = NLPStrategy(url, index_name, Offline= True) # Select Long term strategy
-        #strategy = NLPStrategy(url, index_name, Offline= False) # Select Long term strategy
 
-    # Perform strategy and save
-    url_threshold = url+'/data_origin/table{0}_{1}_{2}'.format(stats, index_name, Limit)
     if stats == 'PER':
-        df_per = strategy.LowPER(threshold = Limit)
-        #print(df_per)
-        df_per.to_json(url_threshold+'.json')
-        df_per.to_csv(url_threshold+'.csv')
-        print(df_per)
-
-        return df_per
+        from rClassicStrategy import PERStrategy
+        df = PERStrategy(url,index_name, Limit)
+        print(df)
 
     elif stats == 'PBR':
-        df_pbr = strategy.LowPBR(threshold = Limit)
-        #print(df_pbr)
-        df_pbr.to_json(url_threshold+'.json')
-        df_pbr.to_csv(url_threshold+'.csv')
-
-        print(df_pbr)
-
-        return df_pbr
+        from rClassicStrategy import PBRStrategy
+        df = PBRStrategy(url,index_name, Limit)
+        print(df)
 
     elif stats == 'Trend':
-        from TrendStrategy import main as TrendStrategy
+        from rTrendStrategy import main as TrendStrategy
         df = TrendStrategy(portfolio=port_list, start=start_day, end=today)
         print(df)
 
     elif stats == 'ML':
-        from MLStrategy import main as MLStrategy
-        sub = MLStrategy(url, index_list = dow_list, index_name=index_name, portfolio=port_list)
-        print(sub)
+        from rMLStrategy import main as MLStrategy
+        df = MLStrategy(url, index_list = dow_list, index_name=index_name, portfolio=port_list)
+        print(df)
 
     elif stats == 'NLP':
-        ## Test ##
-        title = strategy.get_news_title()
+        from rNLPStrategy import main as NLPStrategy
+        title = NLPStrategy(url, index_name)
         print(title)
 
-if __name__ == '__main__':
-    from class_Strategy import LongTermStrategy, NLPStrategy
+    ## SAVE ##
+    url_trade  = url+'data_ForTrading/'
+    df.to_json(url_trade+'{0}_{1}.json'.format(stats, index_name))
+    df.to_csv(url_trade+'{0}_{1}.csv'.format(stats, index_name))
 
+if __name__ == '__main__':
     with open('../config/config.json', 'r') as f:
         config = json.load(f)
 
     root_url = config['root_dir']
     dow_list = yfs.tickers_dow()
-    filename= input("Choice of stock's list (dow, sp500, nasdaq, other, all, selected): ")
+    filename = input("Choice of stock's list (dow, sp500, nasdaq, other, all, selected): ")
     if filename == 'dow':
         dow_list = yfs.tickers_dow()
     elif filename == 'sp500':
@@ -87,7 +72,8 @@ if __name__ == '__main__':
         energy_list = ['APA', 'COG', 'COP', 'CVX', 'DVN', 'EOG', 'FANG', 'HAL', 'HES', 'KMI', 'MPC', 'MRO', 'NOV', 'OKE', 'OXY', 'PSX', 'PXD', 'SLB', 'VLO', 'WMB', 'XOM']
         port_list = energy_list
     elif port_input == 'lowper':
-        df_low_per = main(stock_list=filename, stats = 'PER', Limit = 5)
+        from rClassicStrategy import PERStrategy
+        df_low_per = PERStrategy(url = root_url,index_name = filename, Limit=10)
         lowper_list = df_low_per.index.values.tolist()
         port_list = lowper_list
     elif port_input == 'mine':
@@ -102,8 +88,7 @@ if __name__ == '__main__':
     LimitValue = 10
     statements = input('Choice statement (PER, PBR, Trend, ML, NLP): ')
     if (statements == 'PER' or statements == "PBR"):
-        s2 = input('Set {} point(10, 20, 30): '.format(statements))
-        LimitValue = int(s2)
+        LimitValue = int(input('Set {} point(10, 20, 30): '.format(statements)))
     elif statements == 'Trend':
         td_1y = datetime.timedelta(weeks=52/2)
         today = datetime.datetime.now()
@@ -114,16 +99,5 @@ if __name__ == '__main__':
     main(url=root_url, index_list=dow_list, index_name = filename, portfolio = port_list, stats=statements, Limit=LimitValue)
 
 else:
-    from Strategy.class_Strategy import LongTermStrategy, TrendStrategy
-#    s_list= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
-#    statements = input('Choice statement (PER, PBR, Trend, ML): ')
-#    main(stock_list=s_list, stats=statements)
-
-
-
-
-
-
-
-
+    pass
 

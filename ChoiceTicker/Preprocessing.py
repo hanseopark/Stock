@@ -171,8 +171,7 @@ if __name__=='__main__':
         dow_list_1 = yfs.tickers_nasdaq()
         dow_list_2 = yfs.tickers_other()
         dow_list = dow_list_1 + dow_list_2
-    elif s == 'selected':
-        filename = 'selected'
+    elif filename == 'selected':
         url = root_url+'/data_ForTrading/selected_ticker.json'
         temp_pd = pd.read_json(url)
         dow_list = temp_pd['Ticker'].values.tolist()
