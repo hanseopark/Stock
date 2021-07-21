@@ -5,25 +5,7 @@ import yahoo_fin.stock_info as yfs
 from tqdm import tqdm
 import datetime
 
-def main(index_name, start, end, run_yfs=False, run_pdr=True):
-
-    index_list = yfs.tickers_dow()
-    if index_name == 'dow':
-        index_list = yfs.tickers_dow()
-    elif index_name == 'sp500':
-        index_list = yfs.tickers_sp500()
-    elif index_name == 'nasdaq':
-        index_list = yfs.tickers_nasdaq()
-    elif index_name == 'other':
-        index_list = yfs.tickers_other()
-    elif index_name == 'selected':
-        url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
-        temp_pd = pd.read_json(url)
-        temp_pd = temp_pd['Ticker']
-        index_list = temp_pd.values.tolist()
-
-    print(index_list)
-
+def main(index_list, index_name, start, end, run_yfs=False, run_pdr=True):
     print('Example Apple inc')
     if run_pdr:
         df_aapl = pdr.DataReader('AAPL', 'yahoo', start_day, today)
@@ -53,7 +35,7 @@ def main(index_name, start, end, run_yfs=False, run_pdr=True):
             etf_values[ticker] = df
         except:
             error_symbols.append(ticker)
-    print('Error: ', error_symbols)
+            print('Error: ', error_symbols)
             df_recent.loc[ticker, 'Recent_price'] = yfs.get_live_price(ticker)
 
     if run_pdr:
@@ -77,7 +59,24 @@ def main(index_name, start, end, run_yfs=False, run_pdr=True):
     df_recent.to_csv(url_recent+'.csv')
 
 if __name__ == '__main__':
-    s= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
+    filename= input("Choice of stock's list (dow, sp500, nasdaq, other, selected): ")
+
+    dow_list = yfs.tickers_dow()
+    if filename == 'dow':
+        dow_list = yfs.tickers_dow()
+    elif filename == 'sp500':
+        dow_list = yfs.tickers_sp500()
+    elif filename == 'nasdaq':
+        dow_list = yfs.tickers_nasdaq()
+    elif filename == 'other':
+        dow_list = yfs.tickers_other()
+    elif filename == 'selected':
+        url = '/Users/hanseopark/Work/stock/data_ForTrading/selected_ticker.json'
+        temp_pd = pd.read_json(url)
+        temp_pd = temp_pd['Ticker']
+        dow_list = temp_pd.values.tolist()
+
+    print(dow_list)
 
     ## Define time of start to end ##
     #td_1y = datetime.timedelta(weeks=52/2)
@@ -85,8 +84,8 @@ if __name__ == '__main__':
     today = datetime.datetime.now()
     #start_day = today-td_1y
 
-    print('Price of stcok in {0} for date series and recent price'.format(s))
-    main(index_name=s, start= start_day, end = today, run_yfs = True, run_pdr=False)
+    print('Price of stcok in {0} for date series and recent price'.format(filename))
+    main(index_list = dow_list, index_name=filename, start= start_day, end = today, run_yfs = True, run_pdr=False)
 
 else:
     pass

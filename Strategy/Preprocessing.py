@@ -156,23 +156,18 @@ if __name__=='__main__':
     with open('config/config.json', 'r') as f:
         config = json.load(f)
     root_url = config['root_dir']
+
     dow_list = yfs.tickers_dow()
-    filename = ''
-    s= input("Choice of stock's list (dow, sp500, nasdaq, other, all, selected): ")
-    if s == 'dow':
+    filename= input("Choice of stock's list (dow, sp500, nasdaq, other, all, selected): ")
+    if filename == 'dow':
         dow_list = yfs.tickers_dow()
-        filename = 'dow'
-    elif s == 'sp500':
-        filename = 'sp500'
+    elif filename == 'sp500':
         dow_list = yfs.tickers_sp500()
-    elif s == 'nasdaq':
-        filename = 'nasdaq'
+    elif filename == 'nasdaq':
         dow_list = yfs.tickers_nasdaq()
-    elif s == 'other':
-        filename = 'other'
+    elif filename == 'other':
         dow_list = yfs.tickers_other()
-    elif s == 'all':
-        filename = 'all'
+    elif filename == 'all':
         dow_list_1 = yfs.tickers_nasdaq()
         dow_list_2 = yfs.tickers_other()
         dow_list = dow_list_1 + dow_list_2
@@ -180,8 +175,7 @@ if __name__=='__main__':
         filename = 'selected'
         url = root_url+'/data_ForTrading/selected_ticker.json'
         temp_pd = pd.read_json(url)
-        temp_pd = temp_pd['Ticker']
-        dow_list = temp_pd.values.tolist()
+        dow_list = temp_pd['Ticker'].values.tolist()
 
     main(url=root_url, index_list = dow_list, index_name = filename, EACH=True, ALL=True, SAVE=True, SHOW=False)
 

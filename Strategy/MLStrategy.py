@@ -163,10 +163,10 @@ def main(url = '', index_list = ['AAPL'], index_name = 'dow', portfolio=['AAPL']
 
     sub = pd.DataFrame()
     sub['Ticker'] = test_index
-    sub['MarketCapOfPrediction'] = y_predict
+    sub['PredictionOfMarket'] = y_predict
     sub = sub.set_index('Ticker')
     sub = pd.concat([sub, y_test], axis=1)
-    sub['ratio'] = sub.MarketCapOfPrediction / sub.marketCap
+    sub['ratio'] = sub.PredictionOfMarket / sub.marketCap
     sub = sub.sort_values(by= 'ratio', ascending=False)
     #print(corrmat['Recent_price'].sort_values(ascending=False))
     print(sub)
@@ -182,6 +182,9 @@ def main(url = '', index_list = ['AAPL'], index_name = 'dow', portfolio=['AAPL']
 #   test_model = XGB.XGBRegressor()
 #   test_model.load_model(url+'/Model/ML/model_{0}.json'.format(index_name))
 #   print(test_model.predict(x_test))
+
+    print('The ratio over 10: ')
+    print(sub[sub['ratio']>10])
 
     return sub
 
@@ -209,7 +212,7 @@ if __name__=='__main__':
         temp_pd = temp_pd['Ticker']
         dow_list = temp_pd.values.tolist()
 
-    port_input = input('set portpolio: (lowper, energy, mine) ')
+    port_input = input('set portpolio: (lowper, energy, dow, sp500, mine) ')
     if port_input == 'energy':
         energy_list = ['APA', 'COG', 'COP', 'CVX', 'DVN', 'EOG', 'FANG', 'HAL', 'HES', 'KMI', 'MPC', 'MRO', 'NOV', 'OKE', 'OXY', 'PSX', 'PXD', 'SLB', 'VLO', 'WMB', 'XOM']
         port_list = energy_list
@@ -219,6 +222,12 @@ if __name__=='__main__':
         port_list = lowper_list
     elif port_input == 'mine':
         my_list = ['AAPL', 'NFLX', 'TSM', 'ZIM', 'BP', 'MRO']
+        port_list = my_list
+    elif port_input == 'dow':
+        my_list = yfs.tickers_dow()
+        port_list = my_list
+    elif port_input == 'sp500':
+        my_list = yfs.tickers_sp500()
         port_list = my_list
     else:
         my_list = ['AAPL', 'NFLX', 'TSM', 'ZIM', 'BP', 'MRO']
