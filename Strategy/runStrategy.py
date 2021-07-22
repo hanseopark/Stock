@@ -67,21 +67,22 @@ if __name__ == '__main__':
         temp_pd = temp_pd['Ticker']
         dow_list = temp_pd.values.tolist()
 
-    port_input = input('set portpolio: (lowper, energy, mine) ')
-    if port_input == 'energy':
-        energy_list = ['APA', 'COG', 'COP', 'CVX', 'DVN', 'EOG', 'FANG', 'HAL', 'HES', 'KMI', 'MPC', 'MRO', 'NOV', 'OKE', 'OXY', 'PSX', 'PXD', 'SLB', 'VLO', 'WMB', 'XOM']
-        port_list = energy_list
+    from SettingPortpolio import LoadPortSP500, LoadPort, LoadClassicPort
+    port_input = input('Set Portpolio: (sp500, dow, mine, watch, lowper) ')
+
+    if port_input == 'sp500':
+        df_sp500 = pd.read_json(root_url+'/data_ForTrading/{}.json'.format(port_input))
+        col_list = str(set(df_sp500['GICS Sector'].values.tolist()))
+        stat = input('Select sector in '+ col_list + ' and all: \n')
+        port_list = LoadPortSP500(root_url, stat)
     elif port_input == 'lowper':
-        from rClassicStrategy import PERStrategy
-        df_low_per = PERStrategy(url = root_url,index_name = filename, Limit=10)
-        lowper_list = df_low_per.index.values.tolist()
-        port_list = lowper_list
-    elif port_input == 'mine':
-        my_list = ['AAPL', 'NFLX', 'TSM', 'ZIM', 'BP', 'MRO']
-        port_list = my_list
+        port_list = LoadClassicPort(root_url, filename, 10, port_input)
+    elif port_input == 'dow':
+        port_list = yfs.tickers_dow()
+    elif port_input == 'mine' or 'watch':
+        port_list = LoadPort(root_url, port_input)
     else:
-        my_list = ['AAPL', 'NFLX', 'TSM', 'ZIM', 'BP', 'MRO']
-        port_list = my_list
+        port_list = LoadPort(root_url, 'mine')
 
     print('In my portfolio: ', port_list)
 
