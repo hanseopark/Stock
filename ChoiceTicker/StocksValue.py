@@ -64,7 +64,7 @@ def main(url, index_list, index_name, start, end, run_yfs=False, run_pdr=True):
     df_recent.to_csv(url_recent_value_data+'.csv')
 
 if __name__ == '__main__':
-    with open('../config/config.json', 'r') as f:
+    with open('config/config.json', 'r') as f:
         config = json.load(f)
     root_url = config['root_dir']
 

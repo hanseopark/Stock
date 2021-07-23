@@ -4,3 +4,4 @@
 #echo "dow" | python StocksInfo.py
 echo "sp500" | python StocksValue.py
 echo "sp500" | python StocksInfo.py
+echo "sp500" | python StocksFS.py

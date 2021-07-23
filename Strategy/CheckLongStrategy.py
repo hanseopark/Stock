@@ -47,7 +47,7 @@ def main(url = '', standard_name = '^DJI', index_list = ['AAPL'], index_name = '
 
     list_return = []
     # ax_main
-    ax_main.plot(index, df_st['Adj Close'], color='r', linestyle='solid', label='Dow index (^DJI)')
+    ax_main.plot(index, df_st['Adj Close'], color='r', linestyle='solid', label='{0} index ({1})'.format(index_name, standard_name))
     for tic in selected_ticker:
         df_price = pdr.DataReader(tic,'yahoo', start_day, today)
         init_price = df_price.loc[df_price.index[0], 'Adj Close']
@@ -80,13 +80,13 @@ if __name__ == '__main__':
     filename = input("Choice of stock's list (dow, sp500, nasdaq, other, all, selected): ")
     if filename == 'dow':
         dow_list = yfs.tickers_dow()
-        standard_index = '^DJI'
+        standard_index = 'DIA'
     elif filename == 'sp500':
         dow_list = yfs.tickers_sp500()
-        standard_index = '^DJI'
+        standard_index = 'SPY'
     elif filename == 'nasdaq':
         dow_list = yfs.tickers_nasdaq()
-        standard_index = '^DJI'
+        standard_index = 'QQQ'
     elif filename == 'other':
         dow_list = yfs.tickers_other()
         standard_index = '^DJI'
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     statements = input('Choice statement (PER, PBR, Trend, ML, NLP, Port): ')
 
-    td_1y = datetime.timedelta(weeks=52/2)
+    td_1y = datetime.timedelta(weeks=52*5)
     today = datetime.datetime.now()
     start_day = today - td_1y
 
