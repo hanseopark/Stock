@@ -13,7 +13,7 @@ def main (url, df_index, index_list, index_name):
     df_index.to_csv(url_trade+'{0}.csv'.format(index_name))
 
 if __name__ == '__main__':
-    with open('../config/config.json', 'r') as f:
+    with open('config/config.json', 'r') as f:
         config = json.load(f)
     root_url = config['root_dir']
 

@@ -139,7 +139,7 @@ def main(url, index_list, index_name):
         df.to_csv(url_FS+'.csv')
 
 if __name__ == '__main__':
-    with open('../config/config.json', 'r') as f:
+    with open('config/config.json', 'r') as f:
         config = json.load(f)
     root_url = config['root_dir']
 

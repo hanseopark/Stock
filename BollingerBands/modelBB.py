@@ -10,10 +10,10 @@ from classBB import Stocks
 def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(2020,1,1), end=datetime.datetime.now()):
     selected_ticker = []
     url_data = url+'data_origin/'
+    stock = Stocks(url_data, index_name, start, end)
     for ticker in tqdm(index_list):
-        stock = Stocks(url_data, ticker, index_name, start, end)
-        df_price = stock.get_price_data()
-        df = stock.with_moving_ave()
+        df_price = stock.get_price_data(ticker)
+        df = stock.with_moving_ave(ticker)
         index = df.index.astype('str')
         mean = df['Std'].mean()
         df_day_ago_ago = df.iloc[-3]
@@ -26,7 +26,7 @@ def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(
         down_recent = float(df_recent['bol_down'])
         std_recent = float(df_recent['Std'])
 
-        if std_recent < mean and value_recent > value_day_ago and value_day_ago > value_day_ago_ago and value_recent < upper_recent:
+        if std_recent < (3*mean)/10 and value_recent > value_day_ago and value_day_ago > value_day_ago_ago and value_recent < upper_recent:
             selected_ticker.append(ticker)
 
     url_trade = url+'/data_ForTrading/{0}/TickerList_BB'.format(today.date())

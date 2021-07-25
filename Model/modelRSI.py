@@ -5,26 +5,31 @@ import datetime
 import json
 from tqdm import tqdm
 
-from classRSI import Stocks
+from classModel import priceModel
 
 def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(2020,1,1), end=datetime.datetime.now()):
-    selected_ticker = []
     url_data = url+'data_origin/'
+
+    model = priceModel(url_data, index_name, start, end, Offline=False, run_yfs=True)
+
+    selected_RSI = []
+    error_symbols = []
     for ticker in tqdm(index_list):
-        stock = Stocks(url_data, index_name, start_day, today)
-        df = stock.calcRSI(ticker)
-        df_recent = df.iloc[-1:]
-        value_RSI = float(df_recent['RSI'])
-        value_RSI_signal = float(df_recent['RSI signal'])
-        down = 40
-        if value_RSI < down:
-            if value_RSI < value_RSI_signal:
-                selected_ticker.append(ticker)
+        try:
+            df = model.calcRSI(ticker)
+            df_recent = df.iloc[-1:]
+            value_RSI = float(df_recent['RSI'])
+            value_RSI_signal = float(df_recent['RSI signal'])
+            down = 40
+            if value_RSI < down:
+                if value_RSI < value_RSI_signal:
+                    selected_RSI.append(ticker)
+        except:
+            error_symbols.append(ticker)
+    print(error_symbols)
 
-    print(selected_ticker)
-
-    url_trade = url+'/data_ForTrading/{0}/TickerList_RSI'.format(today.date())
-    df = pd.DataFrame(selected_ticker, columns=['Ticker'])
+    url_trade = url+'/data_ForTrading/{0}/TickerList_{1}_RSI'.format(today.date(), index_name)
+    df = pd.DataFrame(selected_RSI, columns=['Ticker'])
     df.to_json(url_trade+'.json')
     df.to_csv(url_trade+'.csv')
 
@@ -36,7 +41,7 @@ if __name__ == '__main__':
         config = json.load(f)
     root_url = config['root_dir']
 
-    filename = input("Choice of stock's list (dow, sp500, nasdaq, other): ")
+    filename = input("Choice of stock's list (dow, sp500, nasdaq, other): \n")
     dow_list = yfs.tickers_dow()
     if filename == 'dow':
         dow_list = yfs.tickers_dow()

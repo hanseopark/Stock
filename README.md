@@ -22,3 +22,16 @@ If you want to see the visulizaion of data using streamlit, you have to get the 
 $ streamlit run dashbord.py
 
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fhanseopark%2FStock&count_bg=%2379C83D&title_bg=%23555555&icon=xampp.svg&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
+
+## Script
+### Modeling and Downloading
+$ bash runAnalysis.sh y y 
+{1} is meaning to do runGET.sh and {2} is meaning to do runModel.
+
+### Get stock's value, information with financial statements
+$ bash runGET.sh dow
+we can change the index from dow to **sp500, nasdaq and other** which are included NYSE and others
+
+### Get ticker using Model that is applied BB and RSI system
+$ bash runModel.sh dow
+we can change the index from dow to **sp500, nasdaq and other** which are included NYSE and others
