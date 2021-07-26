@@ -4,24 +4,35 @@ import pandas_datareader as pdr
 import yfinance as yf
 import yahoo_fin.stock_info as yfs
 
-import matplotlib as plt
-import seaborn as sns
 import datetime
 import json
 
 def main(url='', index_name='dow', start=datetime.datetime(2020,1,1), end=datetime.datetime.now()):
     url_trade = url+'data_ForTrading/{0}/'.format(end.date())
-    indexs = ['dow', 'sp500', 'nasdaq']
+    print('Checking stability of company')
+    print('If ticked is selected in Dow and S*P500 index, it has already been checked for safety')
+    indexs = ['dow', 'sp500']
     select = set()
+    res = []
+    # Dow ,S&P500
     for index in indexs:
-        df = pd.read_json(url_trade+'TickerList_{}.json'.format(index))
+        df = pd.read_json(url_trade+'TickerList_{}_High.json'.format(index))
         tickers = set(df['Ticker'].values.tolist())
         select.update(tickers)
+    res=list(select)
+
+    # Nasdaq
+    df = pd.read_json(url_trade+'TickerList_nasdaq_High.json')
+    tickers = df['Ticker'].values.tolist()
+
+    # Other
+    df = pd.read_json(url_trade+'TickerList_other_High.json')
+    tickers = df['Ticker'].values.tolist()
 
     if select:
-        print(list(select))
+        print(res)
         with open(url_trade+'TickerList.json', 'w') as f:
-            json.dump(list(select), f)
+            json.dump(res, f)
     else:
         print('Ticker is not found')
 
