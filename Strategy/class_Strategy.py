@@ -92,6 +92,15 @@ class ShortTermStrategy:
 
         return df_price
 
+    def JudgeMarket(self):
+        df = self.with_moving_ave()
+        df['JudgeMA5'] = np.where(df['Adj Close'] > df['MA5'], 'BullMarket', 'BearMarket')
+        df['JudgeMA20'] = np.where(df['Adj Close'] > df['MA20'], 'BullMarket', 'BearMarket')
+        df['JudgeMA60'] = np.where(df['Adj Close'] > df['MA60'], 'BullMarket', 'BearMarket')
+        df['JudgeMA120'] = np.where(df['Adj Close'] > df['MA120'], 'BullMarket', 'BearMarket')
+
+        return df
+
     def BolingerBand(self, df, df_init, df_end, calendar, capital):
         #std_mean = float(df.loc[:, 'Std'].mean())
         portval = 0
