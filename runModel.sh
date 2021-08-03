@@ -20,7 +20,7 @@ INDEX="$1"
 echo ${INDEX} | python Model/modelBB.py
 echo ${INDEX} | python Model/modelHigh.py
 
-#echo ${INDEX} | python CombineDataFrame/CombineWithTicker.py
+#python CombineDataFrame/CombineWithTicker.py
 
 ## Back Testing
 #python Strategy/AutoBackTesting.py

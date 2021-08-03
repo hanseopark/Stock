@@ -58,6 +58,15 @@ class priceModel:
 
         return df_price
 
+    def JudgeMarket(self, symbol):
+        df = self.with_moving_ave(symbol)
+        df['JudgeMA5'] = np.where(df['Adj Close'] > df['MA5'], 'BullMarket', 'BearMarket')
+        df['JudgeMA20'] = np.where(df['Adj Close'] > df['MA20'], 'BullMarket', 'BearMarket')
+        df['JudgeMA60'] = np.where(df['Adj Close'] > df['MA60'], 'BullMarket', 'BearMarket')
+        df['JudgeMA120'] = np.where(df['Adj Close'] > df['MA120'], 'BullMarket', 'BearMarket')
+
+        return df
+
     def calcRSI(self, symbol, period=14):
         df = self.get_price_data(symbol)
         date_index = df.index.astype('str')
@@ -97,9 +106,9 @@ class FSModel:
 
         return high
 
+class Wallet:
+    def __init__(self, capital = 10000):
+        self.capital = capital
 
-
-
-
-
-
+    def EarningValue(self, tickers, period=5):
+        pass

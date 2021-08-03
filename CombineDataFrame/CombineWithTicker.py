@@ -21,13 +21,14 @@ def main(url='', index_name='dow', start=datetime.datetime(2020,1,1), end=dateti
         select.update(tickers)
     res=list(select)
 
-    # Nasdaq
-    df = pd.read_json(url_trade+'TickerList_nasdaq_High.json')
-    tickers = df['Ticker'].values.tolist()
-
-    # Other
-    df = pd.read_json(url_trade+'TickerList_other_High.json')
-    tickers = df['Ticker'].values.tolist()
+#   It is need to think how to check company safety
+#    # Nasdaq
+#    df = pd.read_json(url_trade+'TickerList_nasdaq_High.json')
+#    tickers = df['Ticker'].values.tolist()
+#
+#    # Other
+#    df = pd.read_json(url_trade+'TickerList_other_High.json')
+#    tickers = df['Ticker'].values.tolist()
 
     if select:
         print(res)
