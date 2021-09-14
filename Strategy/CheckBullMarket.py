@@ -5,55 +5,49 @@ import datetime
 import json
 from tqdm import tqdm
 
-from classModel import priceModel
+from class_Strategy import ShortTermStrategy
+
+def daterange(start_date, end_date, step):
+    end_date = end_date-5*datetime.timedelta(step)
+    for n in range(0, int((end_date-start_date).days) +1, step):
+        yield start_date+datetime.timedelta(n)
 
 def main(url='', standard_symbol = '^IXIC', index_list=['aapl'], index_name='dow', start=datetime.datetime(2020,1,1), end=datetime.datetime.now()):
     url_data = url+'data_origin/'
 
-    model = priceModel(url_data, index_name, start, end, Offline=False, run_yfs=True)
+    model = ShortTermStrategy(standard_symbol, start, end, url_data, Offline=False, run_yfs=True)
 
-    df = model.JudgeMarket(standard_symbol)
+    df = model.JudgeMarket()
 
-    df = df.reset_index()
-    df = df.drop(['index', 'High', 'Low', 'Open', 'Close', 'Volume', 'Std', 'bol_upper', 'bol_down'], axis=1)
-    strBull5 = df.loc[df.index[-1], 'JudgeMA5']
-    strBull20 = df.loc[df.index[-1], 'JudgeMA20']
-    strBull60 = df.loc[df.index[-1], 'JudgeMA60']
-    strBull120 = df.loc[df.index[-1], 'JudgeMA120']
+    period = 7
 
+    CountTrue = 0
+    CountFalse = 0
+    for dt in tqdm(daterange(start, end, period)):
+        df_cond = df.loc[dt:dt+datetime.timedelta(period)]
+        df_cond_recent = df_cond.iloc[-1:]
+        df_result = df.loc[dt+datetime.timedelta(period): dt+datetime.timedelta(2*period)]
+        df_result_ago = df_result.iloc[0:1]
+        df_result_recent = df_result.iloc[-1:]
+        agoValue = float(df_result_ago['Open'].item())
+        recentValue = float(df_result_recent['Adj Close'].item())
 
-    print('\n')
-    #print('period 5 days :  ', strBull5)
-    #print('period 20 days:  ', strBull20)
-    #print('period 60 days:  ', strBull60)
-    #print('period 120 days: ', strBull120)
+        strBull5 = df_cond_recent['JudgeMA5'].item()
 
-    if strBull5 == 'BullMarket':
-        isBullMarket = True
-    else:
-        isBullMarket = False
+        if strBull5 == 'BullMarket':
+            isBullMarket = True
+        else:
+            isBullMarket = False
 
-#    url_trade = url+'/data_ForTrading/{0}/TickerList_{1}_BB'.format(end.date(), index_name)
-#    df = pd.DataFrame(selected_BB, columns=['Ticker'])
-#    df.to_json(url_trade+'.json')
-#    df.to_csv(url_trade+'.csv')
+        if isBullMarket == bool(recentValue - agoValue > 0):
+            CountTrue +=1
+        else:
+            CountFalse +=1
 
-    #print(df.loc[df.index[-1], :])
+    print('True: ', CountTrue)
+    print('False: ', CountFalse)
 
-## TEST
-    df = model.with_moving_ave(standard_symbol)
-    #print(df)
-    df = df['Adj Close']
-    yearHigh = df.max(axis=0)
-    recentValue = df.loc[df.index[-1]]
-
-    print('52weakHigh: ', yearHigh)
-    print('Recent Value: ', recentValue)
-
-    vari = (recentValue-yearHigh)/yearHigh * 100
-    print('Variation: ', vari)
-
-    return isBullMarket # True or False
+    return 0 # True or False
 
 if __name__ == '__main__':
     with open('config/config.json', 'r') as f:
@@ -83,9 +77,11 @@ if __name__ == '__main__':
     print('-----------------', filename, '-------------------')
     print('--------------------------------------------------')
 
-    td_1y = datetime.timedelta(weeks=52*3)
+    #td_1y = datetime.timedelta(weeks=52*3)
+    #start_day = datetime.datetime(2000,1,2)
+    start_day = datetime.datetime(2010,1,3)
     today = datetime.datetime.now()
-    start_day = today - td_1y
+    #start_day = today - td_1y
 
     main(url=root_url, standard_symbol = standard_index, index_list=dow_list, index_name=filename, start = start_day, end = today)
 else:

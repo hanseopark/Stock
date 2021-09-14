@@ -4,39 +4,40 @@ import pandas as pd
 from tqdm import tqdm
 import json
 
-def main(url, index_list, index_name):
+def main(url, standard_symbol, index_list, index_name):
 
     ## Configuration directory url
     url_data = url+'data_origin/'
 
     # For check the table of one ticker like aapl
-    aapl_quote = yfs.get_quote_table('aapl')
-    aapl_val = yfs.get_stats_valuation('aapl')
-    aapl_ext = yfs.get_stats('aapl')
-    aapl_sheet = yfs.get_balance_sheet('aapl')
-    aapl_income = yfs.get_income_statement('aapl')
-    aapl_flow = yfs.get_cash_flow('aapl')
+    #aapl_quote = yfs.get_quote_table(standard_symbol)
+    aapl_quote = yfs.get_financials(standard_symbol, yearly = False, quarterly = True)
+    #aapl_val = yfs.get_stats_valuation(standard_symbol)
+#    aapl_ext = yfs.get_stats(standard_symbol)
+#    aapl_sheet = yfs.get_balance_sheet(standard_symbol)
+#    aapl_income = yfs.get_income_statement(standard_symbol)
+#    aapl_flow = yfs.get_cash_flow(standard_symbol)
 
     print('*'*100)
     print('quote')
-    print(aapl_quote)
+    print(aapl_quote['quarterly_cash_flow'])
     print('*'*100)
-    print('basic')
-    print(aapl_val)
-    print('*'*100)
-    print('additional')
-    print(aapl_ext)
-    print('*'*100)
-    print('balance sheets')
-    print(aapl_sheet)
-    print(len(aapl_sheet.columns))
-    print('*'*100)
-    print('income statements')
-    print(aapl_income)
-    print('*'*100)
-    print('cash flow')
-    print(aapl_flow)
-    print('*'*100)
+#    print('basic')
+#    print(aapl_val)
+#    print('*'*100)
+#    print('additional')
+#    print(aapl_ext)
+#    print('*'*100)
+#    print('balance sheets')
+#    print(aapl_sheet)
+#    print(len(aapl_sheet.columns))
+#    print('*'*100)
+#    print('income statements')
+#    print(aapl_income)
+#    print('*'*100)
+#    print('cash flow')
+#    print(aapl_flow)
+#    print('*'*100)
 
     # Get data in the current  olumn for each stock's valuation table
     dow_stats = {}
@@ -59,16 +60,17 @@ def main(url, index_list, index_name):
             add.columns = ['Attribute', 'Value']
             dow_addstats[ticker] = add
 
+            financial_stats = yfs.get_financials(ticker, yearly = False, quarterly=True)
             # Getting balance sheets
-            sheets = yfs.get_balance_sheet(ticker)
+            sheets = financial_stats['quarterly_balance_sheet']
             dow_balsheets[ticker] = sheets
 
             # Getting income statements
-            income = yfs.get_income_statement(ticker)
+            income = financial_stats['quarterly_income_statement']
             dow_income[ticker] = income
 
             # Getting cash flow statements
-            flow = yfs.get_cash_flow(ticker)
+            flow = financial_stats['quarterly_cash_flow']
             dow_flow[ticker] = flow
 
         except:
@@ -149,21 +151,28 @@ if __name__ == '__main__':
     dow_list = yfs.tickers_dow()
     if filename == 'dow':
         dow_list = yfs.tickers_dow()
+        standard_index = '^DJI'
     elif filename == 'sp500':
         dow_list = yfs.tickers_sp500()
+        standard_index = 'aapl'
     elif filename == 'nasdaq':
         dow_list = yfs.tickers_nasdaq()
+        standard_index = '^IXIC'
     elif filename == 'other':
         dow_list = yfs.tickers_other()
+        standard_index = '^IXIC'
     elif filename == 'selected':
         url = root_url+'/data_ForTrading/selected_ticker.json'
         temp_pd = pd.read_json(url)
         temp_pd = temp_pd['Ticker']
         dow_list = temp_pd.values.tolist()
+        standard_index = '^IXIC'
 
-    print(dow_list)
+    print('--------------------------------------------------')
+    print('-----------------', filename, '-------------------')
+    print('--------------------------------------------------')
 
-    main(url=root_url, index_list = dow_list, index_name = filename)
+    main(url=root_url, standard_symbol = standard_index, index_list = dow_list, index_name = filename)
 
 else:
     pass

@@ -15,12 +15,13 @@ from sklearn.linear_model import LinearRegression
 
 class ShortTermStrategy:
 
-    def __init__(self, symbol, start_day, end_day, url = '', Offline=False):
+    def __init__(self, symbol, start_day, end_day, url = '', Offline=False, run_yfs=False):
         self.symbol = symbol
         self.start_day = start_day
         self.end_day = end_day
         self.url = url
         self.Offline = Offline
+        self.run_yfs = run_yfs
 
     def get_price_data(self):
         if (self.Offline == True):
@@ -31,9 +32,16 @@ class ShortTermStrategy:
             df_price = df_price.set_index('Date')
             df_price = df_price.drop(['Ticker'], axis=1)
             df_price = df_price.loc[self.start_day : self.end_day]
-
         else:
-            df_price = pdr.DataReader(self.symbol, 'yahoo',self.start_day, self.end_day)
+            if self.run_yfs==False:
+                df_price = pdr.DataReader(self.symbol, 'yahoo', self.start_day, self.end_day)
+            else:
+                self.start_day.strftime('%m/%d/%y')
+                self.end_day.strftime('%m/%d/%y')
+                df_price = yfs.get_data(self.symbol, start_date=self.start_day, end_date = self.end_day)
+                df_price = df_price.rename(columns={'open':'Open', 'index':'Date', 'high':'High','low':'Low','close':'Close','adjclose':'Adj Close','volume':'Volume','ticker':'Ticker'})
+                df_price = df_price[['Ticker','High','Low','Open','Close','Volume','Adj Close']]
+                df_price = df_price.drop(['Ticker'], axis=1)
 
         return df_price
 

@@ -4,6 +4,11 @@ import pandas_datareader as pdr
 import yahoo_fin.stock_info as yfs
 import datetime
 
+def daterange(start_date, end_date, step):
+    end_date = end_date-5*datetime.timedelta(step)
+    for n in range(0, int((end_date-start_date).days) +1, step):
+        yield start_date+datetime.timedelta(n)
+
 class priceModel:
     def __init__(self, url, filename, start_day, end_day, Offline=False, run_yfs=False):
         self.url = url
@@ -29,9 +34,6 @@ class priceModel:
                 self.start_day.strftime('%m/%d/%y')
                 self.end_day.strftime('%m/%d/%y')
                 df_price = yfs.get_data(symbol, start_date=self.start_day, end_date = self.end_day)
-                #df_price = df_price.reset_index()
-                #df_price = df_price.rename(columns={'open':'Open', 'index':'Date', 'high':'High','low':'Low','close':'Close','adjclose':'Adj Close','volume':'Volume','ticker':'Ticker'})
-                #df_price = df_price[['Ticker','Date','High','Low','Open','Close','Volume','Adj Close']]
                 df_price = df_price.rename(columns={'open':'Open', 'index':'Date', 'high':'High','low':'Low','close':'Close','adjclose':'Adj Close','volume':'Volume','ticker':'Ticker'})
                 df_price = df_price[['Ticker','High','Low','Open','Close','Volume','Adj Close']]
                 df_price = df_price.drop(['Ticker'], axis=1)

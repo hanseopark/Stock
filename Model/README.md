@@ -1,5 +1,7 @@
 # Model
 
+## Is it true that bollinenger band has mean?
+
 ## Bull or Bear market
 We need to chech what this condittion at this statements on market.
 Bull market is meaning that it is the statement of being increase the curruent price. It is presented to attack like bull from up to down. However Bear market is decreaseing on curruent states.
