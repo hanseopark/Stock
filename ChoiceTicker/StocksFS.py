@@ -11,17 +11,17 @@ def main(url, standard_symbol, index_list, index_name):
 
     # For check the table of one ticker like aapl
     #aapl_quote = yfs.get_quote_table(standard_symbol)
-    aapl_quote = yfs.get_financials(standard_symbol, yearly = False, quarterly = True)
+    #aapl_quote = yfs.get_financials(standard_symbol, yearly = False, quarterly = True)
     #aapl_val = yfs.get_stats_valuation(standard_symbol)
 #    aapl_ext = yfs.get_stats(standard_symbol)
 #    aapl_sheet = yfs.get_balance_sheet(standard_symbol)
 #    aapl_income = yfs.get_income_statement(standard_symbol)
 #    aapl_flow = yfs.get_cash_flow(standard_symbol)
 
-    print('*'*100)
-    print('quote')
-    print(aapl_quote['quarterly_cash_flow'])
-    print('*'*100)
+#    print('*'*100)
+#    print('quote')
+#    print(aapl_quote['quarterly_cash_flow'])
+#    print('*'*100)
 #    print('basic')
 #    print(aapl_val)
 #    print('*'*100)

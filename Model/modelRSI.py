@@ -14,13 +14,16 @@ def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(
 
     selected_RSI = []
     error_symbols = []
+
+    down = 40
+    print('Condition to get ticker about point below :', down)
+
     for ticker in tqdm(index_list):
         try:
             df = model.calcRSI(ticker)
             df_recent = df.iloc[-1:]
             value_RSI = float(df_recent['RSI'])
             value_RSI_signal = float(df_recent['RSI signal'])
-            down = 40
             if value_RSI < down:
                 if value_RSI < value_RSI_signal:
                     selected_RSI.append(ticker)
@@ -37,25 +40,23 @@ def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(
     return df
 
 if __name__ == '__main__':
+    print('\n')
+    print('************* Comparing RSI point ***************')
     with open('config/config.json', 'r') as f:
         config = json.load(f)
     root_url = config['root_dir']
 
-    filename = input("Choice of stock's list (dow, sp500, nasdaq, other): \n")
-    dow_list = yfs.tickers_dow()
-    if filename == 'dow':
-        dow_list = yfs.tickers_dow()
-    elif filename == 'sp500':
-        dow_list = yfs.tickers_sp500()
-    elif filename == 'nasdaq':
-        dow_list = yfs.tickers_nasdaq()
-    elif filename == 'other':
-        dow_list = yfs.tickers_other()
-    print(dow_list)
-
-    td_1y = datetime.timedelta(weeks=52/2)
+    td_1y = datetime.timedelta(weeks=52)
     today = datetime.datetime.now()
     start_day = today - td_1y
+
+    filename = input("Using ticker list selected by BB and High model\n")
+    url_BB = root_url+'/data_ForTrading/{0}/TickerList_{1}_High.json'.format(today.date(), filename)
+    temp_pd = pd.read_json(url_BB)
+    temp_pd = temp_pd['Ticker']
+    dow_list = temp_pd.values.tolist()
+
+    print(dow_list)
 
 #    s = input('what is strategy ? (BB, Corona) ')
 #    if s == 'BB':

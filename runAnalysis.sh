@@ -16,7 +16,7 @@ fi
 if [ "${DOMODEL}" = "y" ]
 then
 	echo "To run model"
-	for index in dow sp500 nasdaq other
+	for index in dow sp500
 	do
 		bash runModel.sh $index
 	done

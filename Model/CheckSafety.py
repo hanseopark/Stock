@@ -6,29 +6,24 @@ import json
 from tqdm import tqdm
 
 from classModel import priceModel
-from modelBull import main as isBull
 
-def ConditionBB(ma5, ma20, ma60, ma120, upper, down, value, within, close):
+def CheckSafety(ma5, ma20, ma60, ma120, upper, down, value, within, close):
     if ma5>=ma20 and ma20>=ma60 and ma60>=ma120: # MACD
         if (upper-down) < ma20 * within: # within 15%
             if 0 < upper - value < close: # Close to the upper band
                 return True
 
-def getTickerBB(url='', standard_symbol = '^IXIC',index_list=['aapl'], index_name='dow', start=datetime.datetime(2020,1,1), end=datetime.datetime.now()):
+def getTickerSafety(url='', standard_symbol = '^IXIC',index_list=['aapl'], index_name='dow', start=datetime.datetime(2020,1,1), end=datetime.datetime.now()):
     url_data = url+'data_origin/'
     model = priceModel(url_data, index_name, start, end, Offline=False, run_yfs=True)
     selected_BB = []
     error_symbols = []
-    if isBull(standard_symbol=standard_symbol, index_name=index_name, start=start , end=end) == True:
-        print('Currunt Bull Market in short term')
-    else:
-        print('Currunt Bear Market in short term')
 
     withIn = 0.4 # default 0.4, 20%
     Close = 0.015 # default 0.015, 1.5%
     print('Date range: ', start, ' to ', end)
-    print('Condition of band width comparing moving average 20 days: ', withIn)
-    print('Condition of close to the upper band: ', Close)
+    print('Condition within: ', withIn)
+    print('Condition close: ', Close)
 
     for ticker in tqdm(index_list):
         try:
@@ -60,7 +55,7 @@ def main(url='', standard_symbol = '^IXIC',index_list=['aapl'], index_name='dow'
 
     selected_BB = []
     error_symbols = []
-    tickers = getTickerBB(url, standard_symbol, index_list, index_name, start, end)
+    tickers = getTickerSafety(url, standard_symbol, index_list, index_name, start, end)
     print(tickers)
 
     url_trade = url+'/data_ForTrading/{0}/TickerList_{1}_BB'.format(end.date(), index_name)
@@ -74,33 +69,19 @@ if __name__ == '__main__':
         config = json.load(f)
     root_url = config['root_dir']
 
-    filename = input("Choice of stock's list (dow, sp500, nasdaq, other, all): \n")
-    dow_list = yfs.tickers_dow()
-    if filename == 'dow':
-        dow_list = yfs.tickers_dow()
-        standard_index = '^DJI'
-    elif filename == 'sp500':
-        dow_list = yfs.tickers_sp500()
-        standard_index = '^GSPC'
-    elif filename == 'nasdaq':
-        dow_list = yfs.tickers_nasdaq()
-        standard_index = '^IXIC'
-    elif filename == 'other':
-        dow_list = yfs.tickers_other()
-        standard_index = '^IXIC'
-    elif filename == 'all':
-        dow_list_1 = yfs.tickers_nasdaq()
-        dow_list_2 = yfs.tickers_other()
-        dow_list = dow_list_1 + dow_list_2
-        standard_index = '^IXIC'
-    print('\n************* Bollinger Band Model ***************')
-    print('--------------------------------------------------')
-    print('-----------------', filename, '-------------------')
-    print('--------------------------------------------------')
+    print('\n****** Checking Safety of tickers ')
 
     td_1y = datetime.timedelta(weeks=52*3)
     today = datetime.datetime.now()
     start_day = today - td_1y
+
+    filename = input('Using ticker list selected by BB, High, RSI model\n')
+    url_BB = root_url+'/data_ForTrading/{0}/TickerList_{1}_RSI.json'.format(today.date(), filename)
+    temp_pd = pd.read_json(url_BB)
+    temp_pd = temp_pd['Ticker']
+    dow_list = temp_pd.values.tolist()
+
+    print(dow_list)
 
     main(url=root_url, standard_symbol = standard_index, index_list=dow_list, index_name=filename, start = start_day, end = today)
 else:

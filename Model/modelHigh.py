@@ -16,6 +16,9 @@ def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(
     selected_High = []
     error_symbols = []
 
+    withIn = 0.03
+    print('Condition how mouch close within high value: ', withIn)
+
     for ticker in tqdm(index_list):
         try:
             high = float(modelHigh.getHigh(ticker))
@@ -23,7 +26,7 @@ def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(
             df_recent = df_price.iloc[-1:]
             recent_price = float(df_recent['Adj Close'].item())
             ## Close 52 week high
-            if (high - recent_price < 0.03*high):
+            if (high - recent_price < withIn*high):
                 print(high, recent_price)
                 selected_High.append(ticker)
         except:
@@ -39,11 +42,12 @@ def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(
     return df
 
 if __name__ == '__main__':
+    print('\n******** New update high price in 52 weaks Model **********')
     with open('config/config.json', 'r') as f:
         config = json.load(f)
     root_url = config['root_dir']
 
-    td_1y = datetime.timedelta(weeks=52*3)
+    td_1y = datetime.timedelta(weeks=52)
     today = datetime.datetime.now()
     start_day = today - td_1y
 

@@ -19,6 +19,7 @@ INDEX="$1"
 ## Like Swing Model
 echo ${INDEX} | python Model/modelBB.py
 echo ${INDEX} | python Model/modelHigh.py
+echo ${INDEX} | python Model/modelRSI.py
 
 #python CombineDataFrame/CombineWithTicker.py
 
