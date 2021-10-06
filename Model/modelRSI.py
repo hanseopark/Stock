@@ -15,7 +15,7 @@ def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(
     selected_RSI = []
     error_symbols = []
 
-    down = 40
+    down = 100 #default 40
     print('Condition to get ticker about point below :', down)
 
     for ticker in tqdm(index_list):

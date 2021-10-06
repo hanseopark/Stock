@@ -7,6 +7,9 @@ from tqdm import tqdm
 
 from classModel import priceModel
 
+def weekday(self):
+    return (self.toordinal()+6) % 7
+
 def main(url='', standard_symbol = '^IXIC', index_list=['aapl'], index_name='dow', start=datetime.datetime(2020,1,1), end=datetime.datetime.now()):
     url_data = url+'data_origin/'
 
@@ -21,13 +24,6 @@ def main(url='', standard_symbol = '^IXIC', index_list=['aapl'], index_name='dow
     strBull60 = df.loc[df.index[-1], 'JudgeMA60']
     strBull120 = df.loc[df.index[-1], 'JudgeMA120']
 
-
-    print('\n')
-    #print('period 5 days :  ', strBull5)
-    #print('period 20 days:  ', strBull20)
-    #print('period 60 days:  ', strBull60)
-    #print('period 120 days: ', strBull120)
-
     if strBull5 == 'BullMarket':
         isBullMarket = True
     else:
@@ -40,18 +36,23 @@ def main(url='', standard_symbol = '^IXIC', index_list=['aapl'], index_name='dow
 
     #print(df.loc[df.index[-1], :])
 
-## TEST
     df = model.with_moving_ave(standard_symbol)
-    #print(df)
     df = df['Adj Close']
     yearHigh = df.max(axis=0)
     recentValue = df.loc[df.index[-1]]
 
+    print('Date range for bull or not')
+    print('Start day: ', start, 'Last sunday: ', end)
     print('52weakHigh: ', yearHigh)
     print('Recent Value: ', recentValue)
 
     vari = (recentValue-yearHigh)/yearHigh * 100
-    print('Variation: ', vari)
+    print('Variation of year: ', vari)
+
+    if isBullMarket == True:
+        print('\nCurrunt Bull Market in short term\n')
+    else:
+        print('\nCurrunt Bear Market in short term\n')
 
     return isBullMarket # True or False
 
@@ -80,13 +81,15 @@ if __name__ == '__main__':
         dow_list = dow_list_1 + dow_list_2
         standard_index = '^IXIC'
     print('--------------------------------------------------')
-    print('-----------------', filename, '-------------------')
+    print('---------------------', filename, '------------------------')
     print('--------------------------------------------------')
 
     td_1y = datetime.timedelta(weeks=52*3)
     today = datetime.datetime.now()
+    last_sunday_offset = today.weekday()+1
+    last_sunday = today - datetime.timedelta(days=last_sunday_offset)
     start_day = today - td_1y
 
-    main(url=root_url, standard_symbol = standard_index, index_list=dow_list, index_name=filename, start = start_day, end = today)
+    main(url=root_url, standard_symbol = standard_index, index_list=dow_list, index_name=filename, start = start_day, end = last_sunday)
 else:
     pass

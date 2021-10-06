@@ -87,26 +87,69 @@ class FSModel:
     def __init__(self, url, filename, Offline=False):
         self.url = url
         self.filename = filename
+
+        self.url_stats = self.url+'FS_{}_stats.json'.format(self.filename)
         self.url_addstats = self.url+'FS_{}_addstats.json'.format(self.filename)
+        self.url_balsheets = self.url+'FS_{}_balsheets.json'.format(self.filename)
+        self.url_income = self.url+'FS_{}_income.json'.format(self.filename)
+        self.url_flow = self.url+'FS_{}_flow.json'.format(self.filename)
+
         self.Offline = Offline
+
+    def getStats(self, symbol):
+        if self.Offline==True:
+            combined_addstats = pd.read_json(self.url_stats)
+            df = combined_addstats[combined_addstats.Ticker.str.contains(symbol)]
+        else:
+            df = yfs.get_stats_valuation(symbol)
+            df =df.iloc[:,:2]
+            df.columns = ['Attribute', 'Recent']
+
+        return df
 
     def getAddstats(self, symbol):
         if self.Offline==True:
             combined_addstats = pd.read_json(self.url_addstats)
             df = combined_addstats[combined_addstats.Ticker.str.contains(symbol)]
-            df_high = df[df.Attribute.str.contains('High')].copy()
-            df_high = df_high.drop(['Ticker'],axis=1)
         else:
             df = yfs.get_stats(symbol)
-            df_high = df[df.Attribute.str.contains('High')].copy()
+        return df
 
-        return df_high
-
+##### For model high #####
     def getHigh(self, symbol):
         df = self.getAddstats(symbol)
-        high = df['Value'].item()
+        if self.Offline==True:
+            df_high = df[df.Attribute.str.contains('High')].copy()
+            df_high = df_high.drop(['Ticker'],axis=1)
+            high = df_high['Value'].item()
+        else:
+            df_high = df[df.Attribute.str.contains('High')].copy()
+            high = df_high['Value'].item()
 
         return high
+
+##### For checking safety #####
+    def getCap(self, symbol):
+        df = self.getStats(symbol)
+        df_cap = df[df.Attribute.str.contains('Cap')].copy()
+        if self.Offline==True:
+            df_cap = df_cap.drop(['Ticker'],axis=1)
+            cap = df_cap['Value'].item()
+        else:
+            cap = df_cap['Recent'].item()
+
+        return cap
+
+    def getPER(self, symbol):
+        df = self.getStats(symbol)
+        df_forper = df[df.Attribute.str.contains('Forward P/E')].copy()
+        if self.Offline==True:
+            df_forper['forPER'] = df_forper.loc[:, 'Recent']
+            df_forper = df_forper.drop(['Attribute', 'Recent'], axis=1)
+        else:
+            per = df_forper['Recent'].item()
+
+        return per
 
 class Wallet:
     def __init__(self, capital = 10000):

@@ -27,7 +27,6 @@ def main(url='', index_list=['aapl'], index_name='dow', start=datetime.datetime(
             recent_price = float(df_recent['Adj Close'].item())
             ## Close 52 week high
             if (high - recent_price < withIn*high):
-                print(high, recent_price)
                 selected_High.append(ticker)
         except:
             error_symbols.append(ticker)

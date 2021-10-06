@@ -6,7 +6,6 @@ import json
 from tqdm import tqdm
 
 from classModel import priceModel
-from modelBull import main as isBull
 
 def ConditionBB(ma5, ma20, ma60, ma120, upper, down, value, within, close):
     if ma5>=ma20 and ma20>=ma60 and ma60>=ma120: # MACD
@@ -19,10 +18,6 @@ def getTickerBB(url='', standard_symbol = '^IXIC',index_list=['aapl'], index_nam
     model = priceModel(url_data, index_name, start, end, Offline=False, run_yfs=True)
     selected_BB = []
     error_symbols = []
-    if isBull(standard_symbol=standard_symbol, index_name=index_name, start=start , end=end) == True:
-        print('Currunt Bull Market in short term')
-    else:
-        print('Currunt Bear Market in short term')
 
     withIn = 0.4 # default 0.4, 20%
     Close = 0.015 # default 0.015, 1.5%
@@ -95,7 +90,7 @@ if __name__ == '__main__':
         standard_index = '^IXIC'
     print('\n************* Bollinger Band Model ***************')
     print('--------------------------------------------------')
-    print('-----------------', filename, '-------------------')
+    print('---------------------', filename, '------------------------')
     print('--------------------------------------------------')
 
     td_1y = datetime.timedelta(weeks=52*3)
