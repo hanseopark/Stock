@@ -19,14 +19,17 @@ INDEX="$1"
 ## Like Swing Model
 	# Bull or not
 echo ${INDEX} | python Model/modelBull.py
-OUTPUT=$( ( echo ${INDEX} | python Model/modelBull.py 2>&1 >/dev/null) )
-echo ${OUTPUT}
+#output=$(echo ${INDEX} | python Model/modelBull.py)
+#echo ${output[1]}
 	# Main
 echo ${INDEX} | python Model/modelBB.py
 echo ${INDEX} | python Model/modelHigh.py
 echo ${INDEX} | python Model/modelRSI.py
 	# Check Safety
 echo ${INDEX} | python Model/CheckSafety.py
+
+	# Check ML Model
+python Strategy/rMLStrategy.py ${INDEX} "DailyInput"
 
 #python CombineDataFrame/CombineWithTicker.py
 
