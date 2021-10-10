@@ -7,9 +7,6 @@ from tqdm import tqdm
 
 from classModel import priceModel
 
-def weekday(self):
-    return (self.toordinal()+6) % 7
-
 def main(url='', standard_symbol = '^IXIC', index_list=['aapl'], index_name='dow', start=datetime.datetime(2020,1,1), end=datetime.datetime.now()):
     url_data = url+'data_origin/'
 
@@ -85,8 +82,8 @@ if __name__ == '__main__':
     print('--------------------------------------------------')
 
     td_1y = datetime.timedelta(weeks=52*3)
-    today = datetime.datetime.now()
-    last_sunday_offset = today.weekday()+1
+    today = datetime.date.today()
+    last_sunday_offset = today.toordinal()%7
     last_sunday = today - datetime.timedelta(days=last_sunday_offset)
     start_day = today - td_1y
 

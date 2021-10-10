@@ -216,7 +216,7 @@ if __name__=='__main__':
         dow_list = temp_pd.values.tolist()
 
     from SettingPortpolio import LoadPortSP500, LoadPort, LoadClassicPort
-    print('Set Portpolio: (sp500, dow, mine, watch, DailyPort, lowper) ')
+    print('Set Portpolio: (sp500, dow, mine, watch, DailyPort, lowper, temp) ')
     port_input = sys.argv[2]
 
     if port_input == 'sp500':
@@ -233,6 +233,9 @@ if __name__=='__main__':
         url_trade = root_url+'/data_ForTrading/{0}/TickerList_{1}_SF.json'.format(today.date(), filename)
         temp_pd = pd.read_json(url_trade)
         port_list = temp_pd.index.values.tolist()
+    elif port_input == 'temp':
+        port_list = []
+        port_list.append(input('Temp ticker: '))
     elif port_input == 'mine' or 'watch':
         port_list = LoadPort(root_url, port_input)
     else:
