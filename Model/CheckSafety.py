@@ -63,7 +63,7 @@ if __name__ == '__main__':
     start_day = today - td_1y
 
     filename = input('Using ticker list selected by BB, High, RSI model\n')
-    url_BB = root_url+'/data_ForTrading/{0}/TickerList_{1}_RSI.json'.format(today.date(), filename)
+    url_BB = root_url+'/data_ForTrading/{0}/TickerList_{1}_High.json'.format(today.date(), filename)
     temp_pd = pd.read_json(url_BB)
     temp_pd = temp_pd['Ticker']
     dow_list = temp_pd.values.tolist()

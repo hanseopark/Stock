@@ -231,6 +231,7 @@ if __name__=='__main__':
     elif port_input == 'DailyPort':
         today = datetime.datetime.now()
         url_trade = root_url+'/data_ForTrading/{0}/TickerList_{1}_SF.json'.format(today.date(), filename)
+        print(url_trade)
         temp_pd = pd.read_json(url_trade)
         port_list = temp_pd.index.values.tolist()
     elif port_input == 'temp':

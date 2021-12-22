@@ -24,12 +24,12 @@ echo ${INDEX} | python Model/modelBull.py
 	# Main
 echo ${INDEX} | python Model/modelBB.py
 echo ${INDEX} | python Model/modelHigh.py
-echo ${INDEX} | python Model/modelRSI.py
+#echo ${INDEX} | python Model/modelRSI.py ## It needs more thinking.
 	# Check Safety
 echo ${INDEX} | python Model/CheckSafety.py
 
 	# Check ML Model
-python Strategy/rMLStrategy.py ${INDEX} "DailyInput"
+python Strategy/rMLStrategy.py ${INDEX} "DailyPort"
 
 #python CombineDataFrame/CombineWithTicker.py
 
